@@ -1,3 +1,7 @@
+P.S.
+This is 1 of my previous mini projects that implements direct credit card charging via Stripe API. It was foked from https://github.com/stripe/stripe-php. The work includes making a UI that could let admin create payee and charge for payment by his/her credit card, and building the feature that enables switching to different Stripe account(s).
+
+
 # Stripe PHP bindings
 
 [![Build Status](https://travis-ci.org/stripe/stripe-php.svg?branch=master)](https://travis-ci.org/stripe/stripe-php)
