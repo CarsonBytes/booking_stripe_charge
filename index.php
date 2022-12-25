@@ -44,7 +44,8 @@ if (isset($_POST['name'])) {
 
 	if (trim($_POST['cc-cvc']) != '000') $card_data['card']['cvc'] = trim($_POST['cc-cvc']);
 
-	require_once('init.php');
+	//require_once('init.php');
+    require_once('vendor/autoload.php');
 
 	//wasaike
 	$api = isset($_POST['isTesting']) ? Wasaike_test : Wasaike_live;
@@ -181,7 +182,9 @@ if (isset($_POST['charge'])) {
 
 <head>
 	<!-- <link rel="stylesheet" type="text/css" href="/tabulator/dist/css/tabulator.min.css"> -->
-	<link rel="stylesheet" type="text/css" href="https://www.wasaike.com/tabulator/dist/css/tabulator.min.css">
+	<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/tabulator-tables@4.9.3/dist/css/tabulator.min.css">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
 
 	<style type="text/css" media="screen">
 		input.invalid {
@@ -307,13 +310,16 @@ if (isset($_POST['charge'])) {
 		}
 	</script>
 
-	<script type="text/javascript" src="jquery-3.4.1.min.js"></script>
-	<!--
-	<script type="text/javascript" src="/tabulator/dist/js/tabulator.min.js"></script>
-	<script type="text/javascript" src="/tabulator/moment.js"></script> -->
+	<!-- <script type="text/javascript" src="jquery-3.4.1.min.js"></script> -->
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.6.2/dist/jquery.min.js"></script>
 
-	<script type="text/javascript" src="https://www.wasaike.com/tabulator/dist/js/tabulator.min.js"></script>
-	<script type="text/javascript" src="https://www.wasaike.com/tabulator/moment.js"></script>
+    <!-- <script type="text/javascript" src="/tabulator/dist/js/tabulator.min.js"></script> -->
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+
+	<!--<script type="text/javascript" src="/tabulator/moment.js"></script> -->
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"></script>
 
 	<script>
 		function changetimestamp2date(value, data, type, cell) {
@@ -406,7 +412,7 @@ if (isset($_POST['charge'])) {
 			},
 		};
 
-		table.setData("https://stripe.wasaike.com/customers.json", {}, ajaxConfig); //make ajax request with advanced config options
+		table.setData("customers.json", {}, ajaxConfig); //make ajax request with advanced config options
 	</script>
 
 	<!-- <script>

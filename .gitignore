@@ -16,5 +16,6 @@ clover.xml
 # Ignore IDE's configuration files
 .idea
 
-# Ignore sensitive credentials config
+# Ignore sensitive data
 config.php
+customers.json
