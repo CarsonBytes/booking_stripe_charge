@@ -3,12 +3,13 @@ error_reporting(E_ALL | E_WARNING | E_NOTICE);
 ini_set('display_errors', TRUE);
 session_start();
 
+require_once('vendor/autoload.php');
+
 if (!isset($_SESSION['message'])) $_SESSION['message'] = array();
 if (!isset($_SESSION['exception'])) $_SESSION['exception'] = array();
 
 include('partials/common/functions.php');
 if (isset($_POST['charge_customer'])) {
-    require_once('vendor/autoload.php');
 
     if ($_POST['shop'] == 'mandy') {
         //mandy
@@ -43,7 +44,6 @@ if (isset($_POST['charge_customer'])) {
     header('Location: index.php');
     exit();
 } elseif (isset($_POST['new_customer'])) {
-    require_once('vendor/autoload.php');
     $card_data = [
         'card' => [
             'number' => trim($_POST['cc-number']),

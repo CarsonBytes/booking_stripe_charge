@@ -3,7 +3,6 @@
 require_once('config.php');
 function pushChargeArray($customer_data)
 {
-
     $tempArray = json_decode(file_get_contents('customers.json'));
 
     if ($tempArray == null) {
