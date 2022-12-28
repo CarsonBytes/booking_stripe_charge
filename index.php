@@ -44,61 +44,7 @@ if (isset($_POST['charge_customer'])) {
     header('Location: index.php');
     exit();
 } elseif (isset($_POST['new_customer'])) {
-    $card_data = [
-        'card' => [
-            'number' => trim($_POST['cc-number']),
-            'exp_month' => trim(explode('/', $_POST['cc-exp'])[0]),
-            'exp_year' => trim(explode('/', $_POST['cc-exp'])[1]),
-            'currency' => 'JPY'
-        ]
-    ];
-
-    if (trim($_POST['cc-cvc']) != '000') $card_data['card']['cvc'] = trim($_POST['cc-cvc']);
-
-
-    //wasaike
-    $api = $_POST['isTesting'] == 1 ? Wasaike_test : Wasaike_live;
-    $customer = createCustomer($api, $_POST['name'], $card_data);
-
-    if ($customer instanceof Stripe\Customer) {
-        $_SESSION['message'][] = 'This customer @ wasaike account is created';
-
-        $amount = '';
-        if ($_POST['amount'] != '') {
-            //echo $customer->id;
-            $amount = (float) str_replace(',', '', $_POST['amount']) / 2;
-            $charge = createCharge($api, $customer->id, $amount);
-            if ($charge instanceof Stripe\Charge) {
-                $_SESSION['message'][] = 'The charge ' . $amount . 'yen @ wasaike account is executed';
-            } else {
-                $amount = '';
-            }
-        }
-
-        $customer_data = array(
-            'wasaike_customer_id' => $customer->id,
-            'name' => $customer->name,
-            'created' => $customer->created,
-            'amount' => $amount,
-            'brand' => $customer->sources->data[0]->brand,
-            'country' => $customer->sources->data[0]->country,
-            'last4' => $customer->sources->data[0]->last4,
-            'is_live' => $_POST['isTesting'] == 0 ? 1 : 0,
-            'charger' => 'W'
-        );
-    }
-
-    //mandy
-    $api = $_POST['isTesting'] == 1 ? Mandy_test : Mandy_live;
-    $customer = createCustomer($api, $_POST['name'], $card_data);
-
-    if ($customer instanceof Stripe\Customer) {
-        $_SESSION['message'][] = 'This customer @ mandy account is created';
-        $customer_data['mandy_customer_id'] = $customer->id;
-    }
-
-    pushChargeArray($customer_data);
-
+    handleFormSubmit($_POST);
     header('Location: index.php');
     exit();
 }

@@ -191,13 +191,13 @@
                 $('.html_template .alert').clone().appendTo('.messages');
                 return false;
             }
-        }).on('click', 'form#add_card [type="submit"]', function(e) {
+        })/* .on('click', 'form#add_card [type="submit"]', function(e) {
             $('.messages').html('');
             if ($('form#add_card').find('[name="amount"]').val() % 2 != 0 || $('form#add_card').find('[name="amount"]') <= 0) {
                 $('.html_template .alert .text').text('Please ensure the amount is an even positive value.');
                 $('.html_template .alert').clone().appendTo('.messages');
                 return false;
             }
-        })
+        }) */
     })
 </script>

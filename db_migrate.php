@@ -26,7 +26,8 @@ foreach ($array as $set) {
     unset($customer_data['is_live']);
     unset($customer_data['charger']);
 
-    $db->insert('customer', $customer_data);
+    $result = $db->where('wasaike_customer_id', $customer_data['wasaike_customer_id'])->get('customer');
+    if ($db->count == 0) $db->insert('customer', $customer_data);
 
     $capture_data = $set;
     $capture_data['created_at'] = date('Y-m-d H:i:s', $capture_data['created']);
@@ -36,6 +37,7 @@ foreach ($array as $set) {
     $capture_data['card_country'] = $capture_data['country'] ?? null;
     $capture_data['status'] = 'success';
     $capture_data['customer_id'] = $db->where('wasaike_customer_id', $capture_data['wasaike_customer_id'])->getOne("customer", "id")['id'] ?? null;
+    $capture_data['shop'] = $customer_data['charger'] ?? null;
 
     unset($capture_data['created']);
     unset($capture_data['name']);
@@ -44,6 +46,7 @@ foreach ($array as $set) {
     unset($capture_data['country']);
     unset($capture_data['wasaike_customer_id']);
     unset($capture_data['mandy_customer_id']);
+    unset($capture_data['charger']);
 
     $db->insert('log_capture', $capture_data);
 }
