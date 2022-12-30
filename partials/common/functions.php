@@ -53,19 +53,36 @@ function handleFormSubmit($post)
             $_SESSION['exception'][] = 'Exception: Customer insert failed.' . $db->getLastError();
 
         if ($post['amount'] != '' && $wasaike_customer_id != null) {
-            captureAmount($post['isTesting'] == 0, 'wasaike', $api, $wasaike_customer_id, $post['amount'], 0.5);
+            captureAmount('new', $post['isTesting'] == 0, 'wasaike', $api, $wasaike_customer_id, $post['amount'], 0.5);
         }
-    } else {
+    } elseif (isset($post['charge_customer'])) {
+
+        if ($post['shop'] == 'mandy') {
+            //mandy
+            $api = $post['isTesting'] == 1 ? Mandy_test : Mandy_live;
+            $stripe_customer_id = $post['mandy_customer_id'];
+        } else {
+            //wasaike
+            $api = $post['isTesting'] == 1 ? Wasaike_test : Wasaike_live;
+            $stripe_customer_id = $post['wasaike_customer_id'];
+        }
+
+        captureAmount('charge', $post['isTesting'] == 0, $post['shop'], $api, $stripe_customer_id, $post['amount'], $post['charge_percent'] / 100);
     }
 }
 
-function captureAmount($is_live, $shop, $api, $stripe_customer_id, $amount, $percent)
+function captureAmount($mode, $is_live, $shop, $api, $stripe_customer_id, $amount, $percent)
 {
     global $db;
 
     $amount_to_capture = intval((float) str_replace(',', '', $amount) * $percent);
 
     $customer = $db->where($shop . '_customer_id', $stripe_customer_id)->getOne('customer');
+
+    /* if ($mode == 'charge' && $customer['amount_to_capture'] < $amount_to_capture) {
+        $_SESSION['exception'][] = 'The specified capture amount is bigger than the amount to capture for this customer. Please check carefully and try again.';
+        return false;
+    } */
 
     $capture_data = [
         'is_live' => $is_live,
@@ -85,8 +102,13 @@ function captureAmount($is_live, $shop, $api, $stripe_customer_id, $amount, $per
     $charge = createCharge($api, $stripe_customer_id, $amount_to_capture);
 
     if ($charge instanceof Stripe\Charge) {
-        $amount_captured = $amount_to_capture;
-        $amount_to_capture = $amount - $amount_captured;
+        if ($mode == 'new') {
+            $amount_captured = $amount_to_capture;
+            $amount_to_capture = $amount - $amount_captured;
+        } else if ($mode == 'charge') {
+            $amount_to_capture = $customer['amount_to_capture'] - $amount_to_capture;
+            $amount_captured = $customer['amount_captured'] + $amount_to_capture;
+        }
         $_SESSION['message'][] = "$amount_captured JPY @ $shop is captured. There are still $amount_to_capture JPY to capture. Total is $amount.";
 
         //insert log_capture
@@ -106,6 +128,10 @@ function captureAmount($is_live, $shop, $api, $stripe_customer_id, $amount, $per
             $_SESSION['exception'][] = 'Exception: Customer update failed.' . $db->getLastError();
 
         return true;
+    } else {
+        if ($mode == 'new') {
+            $amount_to_capture = $amount;
+        }
     }
 
     //insert log_capture

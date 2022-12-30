@@ -3,14 +3,15 @@ error_reporting(E_ALL | E_WARNING | E_NOTICE);
 ini_set('display_errors', TRUE);
 session_start();
 
-require_once('vendor/autoload.php');
-
 if (!isset($_SESSION['message'])) $_SESSION['message'] = array();
 if (!isset($_SESSION['exception'])) $_SESSION['exception'] = array();
 
 include('partials/common/functions.php');
 if (isset($_POST['charge_customer'])) {
-
+    handleFormSubmit($_POST);
+    header('Location: index.php');
+    exit();
+/*
     if ($_POST['shop'] == 'mandy') {
         //mandy
         $api = $_POST['isTesting'] == 1 ? Mandy_test : Mandy_live;
@@ -40,9 +41,7 @@ if (isset($_POST['charge_customer'])) {
         'is_live' => $_POST['isTesting'] == 0 ? 1 : 0,
         'charger' => $_POST['shop'] == 'mandy' ? 'M' : 'W'
     );
-    pushChargeArray($customer_data);
-    header('Location: index.php');
-    exit();
+    pushChargeArray($customer_data); */
 } elseif (isset($_POST['new_customer'])) {
     handleFormSubmit($_POST);
     header('Location: index.php');
@@ -97,7 +96,7 @@ if (isset($_POST['charge_customer'])) {
                 <button class="nav-link <?php if (!isset($_SESSION['form_data']['new_customer'])) { ?>active<?php } ?>" id="charge-tab" data-bs-toggle="tab" data-bs-target="#charge" type="button" role="tab" aria-controls="charge" aria-selected="true">Successful Captures</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link <?php if (isset($_SESSION['form_data']['new_customer'])) { ?>active<?php } ?>" id="add-charge-tab" data-bs-toggle="tab" data-bs-target="#add-charge" type="button" role="tab" aria-controls="add-charge" aria-selected="false">Add New Customer</button>
+                <button class="nav-link <?php if (isset($_SESSION['form_data']['new_customer'])) { ?>active<?php } ?>" id="add-charge-tab" data-bs-toggle="tab" data-bs-target="#add-charge" type="button" role="tab" aria-controls="add-charge" aria-selected="false">New Customer</button>
             </li>
         </ul>
         <div class="form-check form-switch">

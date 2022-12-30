@@ -45,18 +45,23 @@
     function changetimestamp2date(value, data, type, cell) {
         return new Date(value * 1000);
     }
-
+    Tabulator.extendModule("ajax", "defaultConfig", {
+        type: "GET",
+        contentType: "application/json; charset=utf-8"
+    });
     //Build Tabulator
     var table = new Tabulator("#example-table", {
         height: false,
         layout: "fitColumns",
         selectable: 1,
-        pagination: "local", //enable local pagination.
+        pagination: true,
+        paginationMode: "remote",
+        ajaxURL: "http://booking_stripe_charge.localhost/ajax_load.php",
         paginationSize: 5, // this option can take any positive integer value (default = 10)
         clipboard: true,
         clipboardCopyStyled: false,
         placeholder: "No Data Set",
-        data: 'customers.json',
+        //data: 'customers.json',
         columns: [
             //{title:"ID@Wasaike", field:"wasaike_customer_id", sorter:"string", width:150},
             //{title:"ID@Mandy", field:"mandy_customer_id", sorter:"string", width:150},
@@ -67,8 +72,8 @@
                 width: 30
             },
             {
-                title: "Charger",
-                field: "charger",
+                title: "Shop",
+                field: "shop",
                 sorter: "string",
                 width: 30
             },
@@ -128,10 +133,7 @@
                 sorter: "string",
                 width: 40
             }
-        ],
-        ajaxResponse: function(url, params, response) {
-            return response.reverse();
-        }
+        ]
     });
     table.on("rowSelected", function(row) {
         $('form#charge input[name=mandy_customer_id]').val(row._row.data.mandy_customer_id);
@@ -180,24 +182,25 @@
             $(this).parents('form').find('[name="cc-cvc"]').val('123');
         }).on('click', 'form#charge [type="submit"]', function(e) {
             $('.messages').html('');
-            if (($('form#charge').find('[name="amount"]').val() % 2 != 0 && $('form#charge').find('#charge_percent-50').is(':checked')) || $('form#add_card').find('[name="amount"]') <= 0) {
+            /* if (($('form#charge').find('[name="amount"]').val() % 2 != 0 && $('form#charge').find('#charge_percent-50').is(':checked')) || $('form#add_card').find('[name="amount"]') <= 0) {
                 $('.html_template .alert .text').text('Please ensure the amount is an even positive value.');
                 $('.html_template .alert').clone().appendTo('.messages');
                 return false;
-            }
+            } */
 
             if (!row_selected) {
                 $('.html_template .alert .text').text('Please select a row on the table.');
                 $('.html_template .alert').clone().appendTo('.messages');
                 return false;
             }
-        })/* .on('click', 'form#add_card [type="submit"]', function(e) {
-            $('.messages').html('');
-            if ($('form#add_card').find('[name="amount"]').val() % 2 != 0 || $('form#add_card').find('[name="amount"]') <= 0) {
-                $('.html_template .alert .text').text('Please ensure the amount is an even positive value.');
-                $('.html_template .alert').clone().appendTo('.messages');
-                return false;
-            }
-        }) */
+        })
+        /* .on('click', 'form#add_card [type="submit"]', function(e) {
+                    $('.messages').html('');
+                    if ($('form#add_card').find('[name="amount"]').val() % 2 != 0 || $('form#add_card').find('[name="amount"]') <= 0) {
+                        $('.html_template .alert .text').text('Please ensure the amount is an even positive value.');
+                        $('.html_template .alert').clone().appendTo('.messages');
+                        return false;
+                    }
+                }) */
     })
 </script>

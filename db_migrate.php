@@ -4,8 +4,12 @@ include('partials/common/config.php');
 
 $data = file_get_contents('customers.json');
 
-
 $array = json_decode($data, true);
+
+$db->rawQuery('SET FOREIGN_KEY_CHECKS = 0;');
+$db->rawQuery('truncate table stripe_booking.customer');
+$db->rawQuery('truncate table stripe_booking.log_capture;;');
+$db->rawQuery('SET FOREIGN_KEY_CHECKS = 1;');
 
 foreach ($array as $set) {
     $customer_data = $set;
@@ -37,7 +41,7 @@ foreach ($array as $set) {
     $capture_data['card_country'] = $capture_data['country'] ?? null;
     $capture_data['status'] = 'success';
     $capture_data['customer_id'] = $db->where('wasaike_customer_id', $capture_data['wasaike_customer_id'])->getOne("customer", "id")['id'] ?? null;
-    $capture_data['shop'] = $customer_data['charger'] ?? null;
+    $capture_data['shop'] = $capture_data['charger'] ?? null;
 
     unset($capture_data['created']);
     unset($capture_data['name']);
