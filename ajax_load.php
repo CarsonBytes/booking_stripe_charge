@@ -6,7 +6,7 @@ $page = $_GET['page'];
 // set page limit to 5 results per page. 20 by default
 $items_per_page = $_GET['size'];
 
-$result = $db->where('lc.status', 'success')->orderBy("lc.id", "desc")
+$result = $db/* ->where('lc.status', 'success') */->orderBy("lc.id", "desc")
     ->join("customer c", "c.id=lc.customer_id", "LEFT")
     ->get(
         'log_capture lc',
@@ -16,15 +16,18 @@ $result = $db->where('lc.status', 'success')->orderBy("lc.id", "desc")
             'c.wasaike_customer_id',
             'c.mandy_customer_id',
             'lc.customer_name as name',
+            'UNIX_TIMESTAMP(c.arrive_at) as arrive_at',
             'UNIX_TIMESTAMP(lc.created_at) as created',
+            'lc.status',
             'lc.amount',
+            'c.amount_to_capture',
             'SUBSTRING(lc.card_number, -4, 4) as last4',
             'lc.card_brand as brand',
             'lc.card_country as country'
         ]
     );
 
-$count = $db->where('status', 'success')->getValue("log_capture", "count(*)");
+$count = $db/* ->where('status', 'success') */->getValue("log_capture", "count(*)");
 
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode(

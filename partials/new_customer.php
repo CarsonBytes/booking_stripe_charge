@@ -1,4 +1,5 @@
 <form action="" method="post" autocomplete="on" id="add_card">
+    <input type="hidden" name="new_customer" value="1" />
     <input type="hidden" name="isTesting" value="<?php echo isset($_SESSION['form_data']['isTesting']) ? $_SESSION['form_data']['isTesting'] : 0; ?>" required />
     <div class="form-floating mb-3 mt-3">
         <input type="text" class="name form-control" name="name" placeholder="Name" value="<?php echo isset($_SESSION['form_data']['name']) ? $_SESSION['form_data']['name'] : '' ?>" required>
@@ -29,6 +30,7 @@
             <label for="amount">Total</label>
         </div>
     </div>
+
     <div class="alert alert-warning d-flex align-items-center" role="alert">
         <svg style="width: 1em; height: 1em;" class="bi flex-shrink-0 me-2" role="img" aria-label="Warning:">
             <use xlink:href="#exclamation-triangle-fill" />
@@ -38,10 +40,16 @@
         </div>
     </div>
 
+    <div class="form-floating mb-3 mt-3">
+        <input autocomplete="off" type="text" id="arrive_at" class="form-control" name="arrive_at" placeholder="Arrival Date" value="<?php echo isset($_SESSION['form_data']['arrive_at']) ? $_SESSION['form_data']['arrive_at'] : '' ?>">
+        <label for="arrive_at">Arrival Date</label>
+    </div>
+
     <div class="alert alert-danger validation passed" role="alert"></div>
 
     <div class="float-end">
-        <button class="btn btn-primary" type="submit" id="new_customer" name="new_customer" value="1">Submit</button>
+        <button class="btn btn-primary" type="submit" id="authorize" name="authorize" value="1">Authorize</button>
+        <button class="btn btn-primary" type="submit" id="capture" name="capture" value="1">Capture</button>
     </div>
 </form>
 <?php

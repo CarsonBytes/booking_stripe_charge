@@ -7,42 +7,7 @@ if (!isset($_SESSION['message'])) $_SESSION['message'] = array();
 if (!isset($_SESSION['exception'])) $_SESSION['exception'] = array();
 
 include('partials/common/functions.php');
-if (isset($_POST['charge_customer'])) {
-    handleFormSubmit($_POST);
-    header('Location: index.php');
-    exit();
-/*
-    if ($_POST['shop'] == 'mandy') {
-        //mandy
-        $api = $_POST['isTesting'] == 1 ? Mandy_test : Mandy_live;
-        $customer_id = $_POST['mandy_customer_id'];
-    } else {
-        //wasaike
-        $api = $_POST['isTesting'] == 1 ? Wasaike_test : Wasaike_live;
-        $customer_id = $_POST['wasaike_customer_id'];
-    }
-
-    $amount = '';
-    if ($_POST['amount'] != '') {
-        //echo $customer->id;
-        $amount = (float) str_replace(',', '', $_POST['amount']) * $_POST['charge_percent'] / 100;
-        $charge = createCharge($api, $customer_id, $amount);
-        if ($charge instanceof Stripe\Charge) {
-            $_SESSION['message'][] = 'The charge ' . $amount . 'yen @ ' . $_POST['shop'] . ' account is executed';
-        }
-    }
-    $customer_data = array(
-        'wasaike_customer_id' => $_POST['wasaike_customer_id'],
-        'mandy_customer_id' => $_POST['mandy_customer_id'],
-        'name' => $_POST['customer_name'],
-        'last4' => $_POST['last4'],
-        'created' => time(),
-        'amount' => $amount,
-        'is_live' => $_POST['isTesting'] == 0 ? 1 : 0,
-        'charger' => $_POST['shop'] == 'mandy' ? 'M' : 'W'
-    );
-    pushChargeArray($customer_data); */
-} elseif (isset($_POST['new_customer'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     handleFormSubmit($_POST);
     header('Location: index.php');
     exit();

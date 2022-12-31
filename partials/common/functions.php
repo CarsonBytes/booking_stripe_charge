@@ -4,7 +4,7 @@ require_once('config.php');
 function handleFormSubmit($post)
 {
     global $db;
-    if (isset($post['new_customer'])) {
+    if (isset($post['authorize']) || isset($post['capture'])) {
         $card_data = [
             'card' => [
                 'number' => trim($post['cc-number']),
@@ -48,12 +48,13 @@ function handleFormSubmit($post)
             'card_brand' => $customer->sources->data[0]->brand,
             'card_country' => $customer->sources->data[0]->country,
             'amount_to_capture' => $post['amount'] ?? null,
+            'arrive_at' => $post['arrive_at'] ?? null,
         ]);
         if (!$customer_db_result)
             $_SESSION['exception'][] = 'Exception: Customer insert failed.' . $db->getLastError();
 
         if ($post['amount'] != '' && $wasaike_customer_id != null) {
-            captureAmount('new', $post['isTesting'] == 0, 'wasaike', $api, $wasaike_customer_id, $post['amount'], 0.5);
+            chargeAmount('new', $post['isTesting'] == 0, 'wasaike', $api, $wasaike_customer_id, $post['amount'], 0.5, isset($post['capture']));
         }
     } elseif (isset($post['charge_customer'])) {
 
@@ -67,11 +68,11 @@ function handleFormSubmit($post)
             $stripe_customer_id = $post['wasaike_customer_id'];
         }
 
-        captureAmount('charge', $post['isTesting'] == 0, $post['shop'], $api, $stripe_customer_id, $post['amount'], $post['charge_percent'] / 100);
+        chargeAmount('charge', $post['isTesting'] == 0, $post['shop'], $api, $stripe_customer_id, $post['amount'], $post['charge_percent'] / 100);
     }
 }
 
-function captureAmount($mode, $is_live, $shop, $api, $stripe_customer_id, $amount, $percent)
+function chargeAmount($mode, $is_live, $shop, $api, $stripe_customer_id, $amount, $percent, $is_capture = true)
 {
     global $db;
 
@@ -99,51 +100,66 @@ function captureAmount($mode, $is_live, $shop, $api, $stripe_customer_id, $amoun
         'amount' => $amount_to_capture,
     ];
 
-    $charge = createCharge($api, $stripe_customer_id, $amount_to_capture);
+    $charge = createCharge($api, $stripe_customer_id, $amount_to_capture, $is_capture);
 
+    $amount_authorized = $customer['amount_authorized'];
+    $amount_captured = $customer['amount_captured'];
     if ($charge instanceof Stripe\Charge) {
         if ($mode == 'new') {
-            $amount_captured = $amount_to_capture;
-            $amount_to_capture = $amount - $amount_captured;
+            if ($is_capture) {
+                $amount_captured = $amount_to_capture;
+                $amount_to_capture = $amount - $amount_captured;
+            } else {
+                $amount_authorized += $amount_to_capture;
+                $amount_to_capture = $amount;
+            }
         } else if ($mode == 'charge') {
-            $amount_to_capture = $customer['amount_to_capture'] - $amount_to_capture;
-            $amount_captured = $customer['amount_captured'] + $amount_to_capture;
+            if ($is_capture) {
+                $amount_captured += $amount_to_capture;
+                $amount_to_capture = $customer['amount_to_capture'] - $amount_to_capture;
+            } else {
+                $amount_authorized += $amount_to_capture;
+                $amount_to_capture = $customer['amount_to_capture'];
+            }
         }
         $_SESSION['message'][] = "$amount_captured JPY @ $shop is captured. There are still $amount_to_capture JPY to capture. Total is $amount.";
 
         //insert log_capture
         $log_capture_db_result = $db->insert('log_capture', $capture_data + [
-            'status' => 'success'
+            'charged_id' => $charge->id,
+            'status' => $is_capture ? 'Success' : 'Authorized'
         ]);
         if (!$log_capture_db_result)
             $_SESSION['exception'][] = 'Exception: log_capture insert failed.' . $db->getLastError();
 
         //update customer
         $customer_db_result = $db->where('id', $customer['id'])->update('customer', [
+            'amount_authorized' => $amount_authorized,
             'amount_captured' => $amount_captured,
             'amount_to_capture' => $amount_to_capture,
-            'status' => 'Deposited'
+            'status' => $is_capture ? 'Deposited' : 'Authorized'
         ]);
         if (!$customer_db_result)
             $_SESSION['exception'][] = 'Exception: Customer update failed.' . $db->getLastError();
 
         return true;
-    } else {
-        if ($mode == 'new') {
-            $amount_to_capture = $amount;
-        }
     }
 
     //insert log_capture
     $log_capture_db_result = $db->insert('log_capture', $capture_data + [
-        'status' => 'failed'
+        'status' => $is_capture ? 'Failed' : 'Auth Failed'
     ]);
     if (!$log_capture_db_result)
         $_SESSION['exception'][] = 'Exception: log_capture insert failed.' . $db->getLastError();
 
+
+    if ($mode == 'new') {
+        $amount_to_capture = $amount;
+    }
     //update customer
     $customer_db_result = $db->where('id', $customer['id'])->update('customer', [
-        'status' => 'Deposit Failed'
+        'amount_to_capture' => $amount_to_capture,
+        'status' => $is_capture ? 'Deposit Failed' : 'Auth Failed'
     ]);
     if (!$customer_db_result)
         $_SESSION['exception'][] = 'Exception: Customer update failed.' . $db->getLastError();
@@ -164,7 +180,7 @@ function createCustomer($api, $customer_name, $card_data)
     return \Stripe\Customer::create($user_data, ['api_key' => $api]);
 }
 
-function createCharge($api, $customer_id, $amount)
+function createCharge($api, $customer_id, $amount, $is_capture = true)
 {
     \Stripe\Stripe::setApiKey($api);
 
@@ -173,13 +189,14 @@ function createCharge($api, $customer_id, $amount)
         'currency' => 'jpy',
         'statement_descriptor' => 'Wasaike Accommodation',
         'customer' => $customer_id,
+        'capture' => $is_capture,
     ]);
 }
 
 set_exception_handler('our_global_exception_handler');
 function our_global_exception_handler($exception)
 {
-    $_SESSION['form_data'] = $post;
+    $_SESSION['form_data'] = $_POST;
     $_SESSION['exception'][] = 'Exception: ' . $exception->getMessage();
     header('Location: index.php');
     exit();

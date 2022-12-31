@@ -48,6 +48,6 @@
     </div>
 
     <div class="float-end">
-        <button class="btn btn-primary" type="submit" name="charge_customer" value="1">Submit</button>
+        <button class="btn btn-primary" type="submit" name="charge_customer" value="1">Capture</button>
     </div>
 </form>

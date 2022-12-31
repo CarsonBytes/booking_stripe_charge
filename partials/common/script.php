@@ -12,7 +12,7 @@
     Payment.formatCardExpiry(exp);
     Payment.formatCardCVC(cvc);
 
-    document.querySelector('#new_customer').onclick = function(e) {
+    document.querySelector('#authorize,#capture').onclick = function(e) {
         J.toggleClass(document.querySelectorAll('input'), 'invalid');
         J.removeClass(validation, 'passed failed');
 
@@ -41,14 +41,9 @@
 
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"></script>
 
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
+
 <script>
-    function changetimestamp2date(value, data, type, cell) {
-        return new Date(value * 1000);
-    }
-    Tabulator.extendModule("ajax", "defaultConfig", {
-        type: "GET",
-        contentType: "application/json; charset=utf-8"
-    });
     //Build Tabulator
     var table = new Tabulator("#example-table", {
         height: false,
@@ -61,7 +56,6 @@
         clipboard: true,
         clipboardCopyStyled: false,
         placeholder: "No Data Set",
-        //data: 'customers.json',
         columns: [
             //{title:"ID@Wasaike", field:"wasaike_customer_id", sorter:"string", width:150},
             //{title:"ID@Mandy", field:"mandy_customer_id", sorter:"string", width:150},
@@ -85,6 +79,26 @@
                 minWidth: 100
             },
             {
+                title: "Arrival Date",
+                field: "arrive_at",
+                formatter: function(cell, formatterParams, onRendered) {
+                    try {
+                        if (cell.getValue() == null) return '';
+                        let dt = luxon.DateTime.fromMillis(cell.getValue() * 1000);
+                        return dt.setLocale("zh").toFormat(formatterParams.outputFormat);
+                    } catch (error) {
+                        return formatterParams.invalidPlaceholder;
+                    }
+                },
+                formatterParams: {
+                    outputFormat: "yyyy年MM月dd日",
+                    invalidPlaceholder: "(invalid date)",
+                    timezone: "Asia/Hong_Kong",
+                },
+                align: "center",
+                width: 150
+            },
+            {
                 title: "Created",
                 field: "created",
                 formatter: function(cell, formatterParams, onRendered) {
@@ -95,7 +109,6 @@
                         return formatterParams.invalidPlaceholder;
                     }
                 },
-                //mutator: changetimestamp2date,
                 formatterParams: {
                     outputFormat: "yyyy年MM月dd日 hh:mma EEEE",
                     invalidPlaceholder: "(invalid date)",
@@ -103,6 +116,12 @@
                 },
                 align: "center",
                 width: 250
+            },
+            {
+                title: "Status",
+                field: "status",
+                align: "center",
+                width: 100
             },
             {
                 title: "Amount",
@@ -114,7 +133,19 @@
                     precision: false
                 },
                 hozAlign: "right",
-                width: 80
+                width: 100
+            },
+            {
+                title: "Amount <br>to Capture",
+                field: "amount_to_capture",
+                formatter: "money",
+                formatterParams: {
+                    symbol: "円",
+                    symbolAfter: true,
+                    precision: false
+                },
+                hozAlign: "right",
+                width: 120
             },
             {
                 title: "Last 4 digit",
@@ -140,13 +171,23 @@
         $('form#charge input[name=wasaike_customer_id]').val(row._row.data.wasaike_customer_id);
         $('form#charge input[name=customer_name]').val(row._row.data.name);
         $('form#charge input[name=last4]').val(row._row.data.last4);
-        $('form#charge input[name=amount]').val(row._row.data.amount);
+        $('form#charge input[name=amount]').val(row._row.data.amount_to_capture);
         $('#flexSwitchCheckChecked').prop('checked', row._row.data.is_live == 1 ? true : false).trigger('change');
         row_selected = true;
     });
     table.on("rowDeselected", function(row) {
         row_selected = false;
     });
+
+    $('#arrive_at').datepicker({
+        format: "yyyy/mm/dd",
+        language: "zh-TW",
+        todayHighlight: true,
+        daysOfWeekHighlighted: "0,6",
+        autoclose: true,
+        startDate: "tomorrow"
+    });
+
     /* var ajaxConfig = {
         method: "post", //set request type to Position
         headers: {
