@@ -4,7 +4,7 @@ require_once('config.php');
 function handleFormSubmit($post)
 {
     global $db;
-    if (isset($post['authorize']) || isset($post['capture'])) {
+    if (isset($post['new_customer'])) {
         $card_data = [
             'card' => [
                 'number' => trim($post['cc-number']),
@@ -17,9 +17,11 @@ function handleFormSubmit($post)
         if (trim($post['cc-cvc']) != '000') $card_data['card']['cvc'] = trim($post['cc-cvc']);
 
         //mandy
-        $api = $post['isTesting'] == 1 ? Mandy_test : Mandy_live;
-
-        $customer = createCustomer($api, $post['name'], $card_data);
+        $customer = createCustomer(
+            getStripeAPIKey('mandy', !$post['isTesting']),
+            $post['name'],
+            $card_data
+        );
         $mandy_customer_id = null;
         if ($customer instanceof Stripe\Customer) {
             $_SESSION['message'][] = 'This customer @ mandy account is created';
@@ -27,9 +29,11 @@ function handleFormSubmit($post)
         }
 
         //wasaike
-        $api = $post['isTesting'] == 1 ? Wasaike_test : Wasaike_live;
-
-        $customer = createCustomer($api, $post['name'], $card_data);
+        $customer = createCustomer(
+            getStripeAPIKey('wasaike', !$post['isTesting']),
+            $post['name'],
+            $card_data
+        );
 
         $wasaike_customer_id = null;
         if ($customer instanceof Stripe\Customer) {
@@ -48,31 +52,48 @@ function handleFormSubmit($post)
             'card_brand' => $customer->sources->data[0]->brand,
             'card_country' => $customer->sources->data[0]->country,
             'amount_to_capture' => $post['amount'] ?? null,
-            'arrive_at' => $post['arrive_at'] ?? null,
+            'arrive_at' => validateDate($post['arrive_at']) ? $post['arrive_at'] : null,
         ]);
         if (!$customer_db_result)
             $_SESSION['exception'][] = 'Exception: Customer insert failed.' . $db->getLastError();
 
         if ($post['amount'] != '' && $wasaike_customer_id != null) {
-            chargeAmount('new', $post['isTesting'] == 0, 'wasaike', $api, $wasaike_customer_id, $post['amount'], 0.5, isset($post['capture']));
+            chargeAmount(
+                'new',
+                !$post['isTesting'],
+                $post['shop'],
+                $wasaike_customer_id,
+                $post['amount'],
+                isset($post['capture']),
+                $post['charge_percent'] / 100
+            );
         }
     } elseif (isset($post['charge_customer'])) {
 
-        if ($post['shop'] == 'mandy') {
-            //mandy
-            $api = $post['isTesting'] == 1 ? Mandy_test : Mandy_live;
-            $stripe_customer_id = $post['mandy_customer_id'];
-        } else {
-            //wasaike
-            $api = $post['isTesting'] == 1 ? Wasaike_test : Wasaike_live;
-            $stripe_customer_id = $post['wasaike_customer_id'];
-        }
+        $stripe_customer_id = $post[$post['shop'] . '_customer_id'];
 
-        chargeAmount('charge', $post['isTesting'] == 0, $post['shop'], $api, $stripe_customer_id, $post['amount'], $post['charge_percent'] / 100);
+        chargeAmount(
+            'charge',
+            !$post['isTesting'],
+            $post['shop'],
+            $stripe_customer_id,
+            $post['amount'],
+            isset($post['capture'])
+        );
     }
 }
 
-function chargeAmount($mode, $is_live, $shop, $api, $stripe_customer_id, $amount, $percent, $is_capture = true)
+function getStripeAPIKey($shop, $is_live)
+{
+    if ($shop == 'wasaike') {
+        //wasaike
+        return $is_live ? Wasaike_live : Wasaike_test;
+    }
+    //mandy
+    return $is_live ? Mandy_live : Mandy_test;
+}
+
+function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_capture = true, $percent = 1)
 {
     global $db;
 
@@ -100,7 +121,7 @@ function chargeAmount($mode, $is_live, $shop, $api, $stripe_customer_id, $amount
         'amount' => $amount_to_capture,
     ];
 
-    $charge = createCharge($api, $stripe_customer_id, $amount_to_capture, $is_capture);
+    $charge = createCharge(getStripeAPIKey($shop, $is_live), $stripe_customer_id, $amount_to_capture, $is_capture);
 
     $amount_authorized = $customer['amount_authorized'];
     $amount_captured = $customer['amount_captured'];
@@ -126,7 +147,7 @@ function chargeAmount($mode, $is_live, $shop, $api, $stripe_customer_id, $amount
 
         //insert log_capture
         $log_capture_db_result = $db->insert('log_capture', $capture_data + [
-            'charged_id' => $charge->id,
+            'stripe_charge_id' => $charge->id,
             'status' => $is_capture ? 'Success' : 'Authorized'
         ]);
         if (!$log_capture_db_result)
@@ -191,6 +212,12 @@ function createCharge($api, $customer_id, $amount, $is_capture = true)
         'customer' => $customer_id,
         'capture' => $is_capture,
     ]);
+}
+
+function validateDate($date, $format = 'Y/m/d')
+{
+    $d = DateTime::createFromFormat($format, $date);
+    return $d && $d->format($format) == $date;
 }
 
 set_exception_handler('our_global_exception_handler');
