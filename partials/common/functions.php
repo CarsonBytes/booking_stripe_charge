@@ -78,7 +78,9 @@ function handleFormSubmit($post)
             $post['shop'],
             $stripe_customer_id,
             $post['amount'],
-            isset($post['capture'])
+            isset($post['capture']),
+            1,
+            $post['stripe_charge_id']
         );
     }
 }
@@ -93,18 +95,15 @@ function getStripeAPIKey($shop, $is_live)
     return $is_live ? Mandy_live : Mandy_test;
 }
 
-function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_capture = true, $percent = 1)
+function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_capture = true, $percent = 1, $stripe_charge_id = '')
 {
     global $db;
 
     $amount_to_capture = intval((float) str_replace(',', '', $amount) * $percent);
 
     $customer = $db->where($shop . '_customer_id', $stripe_customer_id)->getOne('customer');
-
-    /* if ($mode == 'charge' && $customer['amount_to_capture'] < $amount_to_capture) {
-        $_SESSION['exception'][] = 'The specified capture amount is bigger than the amount to capture for this customer. Please check carefully and try again.';
-        return false;
-    } */
+    $amount_authorized = $customer['amount_authorized'];
+    $amount_captured = $customer['amount_captured'];
 
     $capture_data = [
         'is_live' => $is_live,
@@ -121,50 +120,97 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
         'amount' => $amount_to_capture,
     ];
 
-    $charge = createCharge(getStripeAPIKey($shop, $is_live), $stripe_customer_id, $amount_to_capture, $is_capture);
+    //if stripe_charge_id exists and is a capture action, then start to capture authorized amount
+    if ($stripe_charge_id != '' && $is_capture) {
+        $stripe = new \Stripe\StripeClient(getStripeAPIKey($shop, $is_live));
+        $charge = $stripe->charges->retrieve(
+            $stripe_charge_id,
+            []
+        );
+        // check the existing charge how much the authorized non captured amount is
+        if ($charge->outcome->type == 'authorized' && !$charge->captured) {
+            $stripe->charges->capture(
+                $stripe_charge_id,
+                []
+            );
 
-    $amount_authorized = $customer['amount_authorized'];
-    $amount_captured = $customer['amount_captured'];
-    if ($charge instanceof Stripe\Charge) {
-        if ($mode == 'new') {
-            if ($is_capture) {
-                $amount_captured = $amount_to_capture;
-                $amount_to_capture = $amount - $amount_captured;
-            } else {
-                $amount_authorized += $amount_to_capture;
-                $amount_to_capture = $amount;
-            }
-        } else if ($mode == 'charge') {
-            if ($is_capture) {
-                $amount_captured += $amount_to_capture;
-                $amount_to_capture = $customer['amount_to_capture'] - $amount_to_capture;
-            } else {
-                $amount_authorized += $amount_to_capture;
-                $amount_to_capture = $customer['amount_to_capture'];
-            }
+            $captured_authorized_amount = $charge->amount - $charge->amount_captured;
+
+            $amount_captured += $captured_authorized_amount;
+            $amount_to_capture = $customer['amount_to_capture'] - $captured_authorized_amount;
+
+            $capture_data['amount'] = $captured_authorized_amount;
+
+            $_SESSION['message'][] = "The authorized amount $captured_authorized_amount JPY @ $shop is captured. There are still $amount_to_capture JPY to capture.";
+
+            //insert log_capture
+            $log_capture_db_result = $db->insert('log_capture', $capture_data + [
+                'stripe_charge_id' => $charge->id,
+                'status' => 'Auth Captured'
+            ]);
+            if (!$log_capture_db_result)
+                $_SESSION['exception'][] = 'Exception: log_capture insert failed.' . $db->getLastError();
+
+            //update customer
+            $customer_db_result = $db->where('id', $customer['id'])->update('customer', [
+                'amount_captured' => $amount_captured,
+                'amount_to_capture' => $amount_to_capture,
+                'status' => 'Partially Captured'
+            ]);
+            if (!$customer_db_result)
+                $_SESSION['exception'][] = 'Exception: Customer update failed.' . $db->getLastError();
         }
-        $_SESSION['message'][] = "$amount_captured JPY @ $shop is captured. There are still $amount_to_capture JPY to capture. Total is $amount.";
+    }
 
-        //insert log_capture
-        $log_capture_db_result = $db->insert('log_capture', $capture_data + [
-            'stripe_charge_id' => $charge->id,
-            'status' => $is_capture ? 'Success' : 'Authorized'
-        ]);
-        if (!$log_capture_db_result)
-            $_SESSION['exception'][] = 'Exception: log_capture insert failed.' . $db->getLastError();
+    // if the captured authorized amount is still not enough to cover the amount to capture, create a new charge and authorize / capture the rest amount right away
+    if ($amount_to_capture > 0) {
 
-        //update customer
-        $customer_db_result = $db->where('id', $customer['id'])->update('customer', [
-            'amount_authorized' => $amount_authorized,
-            'amount_captured' => $amount_captured,
-            'amount_to_capture' => $amount_to_capture,
-            'status' => $is_capture ? 'Deposited' : 'Authorized'
-        ]);
-        if (!$customer_db_result)
-            $_SESSION['exception'][] = 'Exception: Customer update failed.' . $db->getLastError();
+        $charge = createCharge(getStripeAPIKey($shop, $is_live), $stripe_customer_id, $amount_to_capture, $is_capture);
 
+        if ($charge instanceof Stripe\Charge) {
+            if ($mode == 'new') {
+                if ($is_capture) {
+                    $amount_captured = $amount_to_capture;
+                    $amount_to_capture = $amount - $amount_captured;
+                } else {
+                    $amount_authorized += $amount_to_capture;
+                    $amount_to_capture = $amount;
+                }
+            } else if ($mode == 'charge') {
+                if ($is_capture) {
+                    $amount_captured += $amount_to_capture;
+                    $amount_to_capture = $customer['amount_to_capture'] - $amount_to_capture;
+                } else {
+                    $amount_authorized += $amount_to_capture;
+                    $amount_to_capture = $customer['amount_to_capture'];
+                }
+            }
+            $_SESSION['message'][] = "$amount_captured JPY @ $shop is captured. There are still $amount_to_capture JPY to capture. Total is $amount.";
+
+            //insert log_capture
+            $log_capture_db_result = $db->insert('log_capture', $capture_data + [
+                'stripe_charge_id' => $charge->id,
+                'status' => $is_capture ? 'Success' : 'Authorized'
+            ]);
+            if (!$log_capture_db_result)
+                $_SESSION['exception'][] = 'Exception: log_capture insert failed.' . $db->getLastError();
+
+            //update customer
+            $customer_db_result = $db->where('id', $customer['id'])->update('customer', [
+                'amount_authorized' => $amount_authorized,
+                'amount_captured' => $amount_captured,
+                'amount_to_capture' => $amount_to_capture,
+                'status' => $is_capture ? 'Deposited' : 'Authorized'
+            ]);
+            if (!$customer_db_result)
+                $_SESSION['exception'][] = 'Exception: Customer update failed.' . $db->getLastError();
+
+            return true;
+        }
+    }else{
         return true;
     }
+
 
     //insert log_capture
     $log_capture_db_result = $db->insert('log_capture', $capture_data + [

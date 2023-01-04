@@ -8,6 +8,8 @@
 
     <input type="hidden" name="wasaike_customer_id" value="">
 
+    <input type="hidden" name="stripe_charge_id" value="">
+
     <input type="hidden" name="customer_name" value="">
 
     <input type="hidden" name="last4" value="">

@@ -51,6 +51,7 @@
         selectable: 1,
         pagination: true,
         paginationMode: "remote",
+        filterMode:"remote",
         ajaxURL: "http://booking_stripe_charge.localhost/ajax_load.php",
         paginationSize: 5, // this option can take any positive integer value (default = 10)
         clipboard: true,
@@ -169,6 +170,7 @@
     table.on("rowSelected", function(row) {
         $('form#charge input[name=mandy_customer_id]').val(row._row.data.mandy_customer_id);
         $('form#charge input[name=wasaike_customer_id]').val(row._row.data.wasaike_customer_id);
+        $('form#charge input[name=stripe_charge_id]').val(row._row.data.stripe_charge_id);
         $('form#charge input[name=customer_name]').val(row._row.data.name);
         $('form#charge input[name=last4]').val(row._row.data.last4);
         $('form#charge input[name=amount]').val(row._row.data.amount_to_capture);
