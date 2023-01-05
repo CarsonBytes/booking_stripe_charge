@@ -51,8 +51,13 @@
         selectable: 1,
         pagination: true,
         paginationMode: "remote",
-        filterMode:"remote",
-        ajaxURL: "http://booking_stripe_charge.localhost/ajax_load.php",
+        filterMode: "remote",
+        ajaxURL: "/ajax_load.php",
+        ajaxParams: function() {
+            return {
+                h: (Math.random() + 1).toString(36).substring(7)
+            };
+        },
         paginationSize: 5, // this option can take any positive integer value (default = 10)
         clipboard: true,
         clipboardCopyStyled: false,

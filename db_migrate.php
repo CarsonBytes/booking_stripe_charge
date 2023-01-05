@@ -19,7 +19,7 @@ foreach ($array as $set) {
     $customer_data['card_brand'] = $customer_data['brand'] ?? null;
     $customer_data['card_country'] = $customer_data['country'] ?? null;
     $customer_data['amount_captured'] = $customer_data['amount'] ?? null;
-    $customer_data['status'] = 'captured';
+    $customer_data['status'] = 'Captured';
 
     unset($customer_data['created']);
     unset($customer_data['name']);
@@ -39,7 +39,7 @@ foreach ($array as $set) {
     $capture_data['card_number'] = $capture_data['last4'] ?? null;
     $capture_data['card_brand'] = $capture_data['brand'] ?? null;
     $capture_data['card_country'] = $capture_data['country'] ?? null;
-    $capture_data['status'] = 'success';
+    $capture_data['status'] = 'Success';
     $capture_data['customer_id'] = $db->where('wasaike_customer_id', $capture_data['wasaike_customer_id'])->getOne("customer", "id")['id'] ?? null;
     $capture_data['shop'] = $capture_data['charger'] ?? null;
 

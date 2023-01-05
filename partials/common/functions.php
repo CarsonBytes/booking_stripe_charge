@@ -155,7 +155,7 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
             $customer_db_result = $db->where('id', $customer['id'])->update('customer', [
                 'amount_captured' => $amount_captured,
                 'amount_to_capture' => $amount_to_capture,
-                'status' => 'Partially Captured'
+                'status' => $amount_to_capture > 0 ? 'Partially Captured' : 'Captured'
             ]);
             if (!$customer_db_result)
                 $_SESSION['exception'][] = 'Exception: Customer update failed.' . $db->getLastError();
@@ -200,14 +200,14 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
                 'amount_authorized' => $amount_authorized,
                 'amount_captured' => $amount_captured,
                 'amount_to_capture' => $amount_to_capture,
-                'status' => $is_capture ? 'Deposited' : 'Authorized'
+                'status' => $is_capture ? ($amount_to_capture > 0 ? 'Partially Captured' : 'Captured') : 'Authorized'
             ]);
             if (!$customer_db_result)
                 $_SESSION['exception'][] = 'Exception: Customer update failed.' . $db->getLastError();
 
             return true;
         }
-    }else{
+    } else {
         return true;
     }
 
@@ -226,7 +226,7 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
     //update customer
     $customer_db_result = $db->where('id', $customer['id'])->update('customer', [
         'amount_to_capture' => $amount_to_capture,
-        'status' => $is_capture ? 'Deposit Failed' : 'Auth Failed'
+        'status' => $is_capture ? 'Capture Failed' : 'Auth Failed'
     ]);
     if (!$customer_db_result)
         $_SESSION['exception'][] = 'Exception: Customer update failed.' . $db->getLastError();
