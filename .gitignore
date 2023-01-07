@@ -19,3 +19,5 @@ clover.xml
 # Ignore sensitive data
 config.php
 customers.json
+.htaccess
+.htpasswd
