@@ -51,27 +51,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['message'] = array();
         }
         ?>
+        <div class="alert alert-warning alert-dismissible" id="js_alert" role="alert" style="display:none;">
+            <div class="text"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     </div>
 
     <div class="header">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link <?php if (!isset($_SESSION['form_data']['new_customer'])) { ?>active<?php } ?>" id="charge-tab" data-bs-toggle="tab" data-bs-target="#charge" type="button" role="tab" aria-controls="charge" aria-selected="true">Past Captures</button>
+                <button class="nav-link <?php if (!isset($_SESSION['form_data']['scheduled_captures']) && !isset($_SESSION['form_data']['new_customer'])) { ?>active<?php } ?>" id="scheduled_captures-tab" data-bs-toggle="tab" data-bs-target="#scheduled_captures" type="button" role="tab" aria-controls="#scheduled_captures" aria-selected="true">Scheduled Captures</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link <?php if (isset($_SESSION['form_data']['charge_customer'])) { ?>active<?php } ?>" id="past_captures-tab" data-bs-toggle="tab" data-bs-target="#past_captures" type="button" role="tab" aria-controls="past_captures" aria-selected="true">Past Captures</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link <?php if (isset($_SESSION['form_data']['new_customer'])) { ?>active<?php } ?>" id="add-charge-tab" data-bs-toggle="tab" data-bs-target="#add-charge" type="button" role="tab" aria-controls="add-charge" aria-selected="false">New Customer</button>
             </li>
         </ul>
         <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked>
-            <label class="form-check-label" for="flexSwitchCheckChecked">Live</label>
+            <label class="form-check-label" role="button">
+                <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked>
+                Live</label>
         </div>
     </div>
     <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade <?php if (!isset($_SESSION['form_data']['new_customer'])) { ?>show active<?php } ?>" id="charge" role="tabpanel" aria-labelledby="charge-tab" tabindex="0">
+        <div class="tab-pane fade <?php if (!isset($_SESSION['form_data']['scheduled_captures']) && !isset($_SESSION['form_data']['new_customer'])) { ?>show active<?php } ?>" id="scheduled_captures" role="tabpanel" aria-labelledby="scheduled_captures-tab" tabindex="0">
+            <?php require 'partials/scheduled_captures.php'; ?>
+        </div>
+        <div class="tab-pane fade <?php if (isset($_SESSION['form_data']['charge_customer'])) { ?>show active<?php } ?>" id="past_captures" role="tabpanel" aria-labelledby="past_captures-tab" tabindex="1">
             <?php require 'partials/charge_customer.php'; ?>
         </div>
-        <div class="tab-pane fade <?php if (isset($_SESSION['form_data']['new_customer'])) { ?>show active<?php } ?>" id="add-charge" role="tabpanel" aria-labelledby="add-charge-tab" tabindex="0">
+        <div class="tab-pane fade <?php if (isset($_SESSION['form_data']['new_customer'])) { ?>show active<?php } ?>" id="add-charge" role="tabpanel" aria-labelledby="add-charge-tab" tabindex="2">
             <?php require 'partials/new_customer.php'; ?>
         </div>
     </div>

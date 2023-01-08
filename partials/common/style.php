@@ -31,4 +31,8 @@
         color: green;
         content: 'Validation passed';
     }
+
+    label[role="button"] {
+        user-select: none;
+    }
 </style>

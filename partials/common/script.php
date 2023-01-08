@@ -44,8 +44,7 @@
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
 
 <script>
-    //Build Tabulator
-    var table = new Tabulator("#example-table", {
+    var table = new Tabulator("#charge_customer_table", {
         height: false,
         layout: "fitColumns",
         selectable: 1,
@@ -55,6 +54,7 @@
         ajaxURL: "/ajax_load.php",
         ajaxParams: function() {
             return {
+                type: 'past_captures',
                 h: (Math.random() + 1).toString(36).substring(7)
             };
         },
@@ -101,7 +101,7 @@
                     invalidPlaceholder: "(invalid date)",
                     timezone: "Asia/Hong_Kong",
                 },
-                align: "center",
+                hozAlign: "center",
                 width: 150
             },
             {
@@ -120,13 +120,13 @@
                     invalidPlaceholder: "(invalid date)",
                     timezone: "Asia/Hong_Kong",
                 },
-                align: "center",
+                hozAlign: "center",
                 width: 250
             },
             {
                 title: "Status",
                 field: "status",
-                align: "center",
+                hozAlign: "center",
                 width: 100
             },
             {
@@ -180,10 +180,10 @@
         $('form#charge input[name=last4]').val(row._row.data.last4);
         $('form#charge input[name=amount]').val(row._row.data.amount_to_capture);
         $('#flexSwitchCheckChecked').prop('checked', row._row.data.is_live == 1 ? true : false).trigger('change');
-        row_selected = true;
+        row_selected_past_captures = true;
     });
     table.on("rowDeselected", function(row) {
-        row_selected = false;
+        row_selected_past_captures = false;
     });
 
     $('#arrive_at').datepicker({
@@ -195,18 +195,250 @@
         startDate: "tomorrow"
     });
 
-    /* var ajaxConfig = {
-        method: "post", //set request type to Position
-        headers: {
-            "Content-type": 'application/json; charset=utf-8', //set specific content type
+    Tabulator.extendModule("format", "formatters", {
+        toggle: function(cell, formatterParams) {
+            var is_check = (cell.getValue() == 1) ? "checked" : "";
+            var text = is_check ? "On" : "Off";
+            return "<div class=\"form-check form-switch\"><label class=\"form-check-label\" role=\"button\"><input class=\"form-check-input resume_auto_auth\" type=\"checkbox\" role=\"switch\" data-id=\"" + cell.getRow().getData().id + "\" " + is_check + ">" + text + "</label></div>";
         },
-    }; */
+    });
+    var table2 = new Tabulator("#scheduled_captures_table", {
+        height: false,
+        layout: "fitColumns",
+        selectable: 1,
+        pagination: true,
+        paginationMode: "remote",
+        filterMode: "remote",
+        ajaxURL: "/ajax_load.php",
+        ajaxParams: function() {
+            return {
+                type: 'scheduled_captures',
+                h: (Math.random() + 1).toString(36).substring(7)
+            };
+        },
+        paginationSize: 5, // this option can take any positive integer value (default = 10)
+        clipboard: true,
+        clipboardCopyStyled: false,
+        placeholder: "No Data Set",
+        columns: [
+            //{title:"ID@Wasaike", field:"wasaike_customer_id", sorter:"string", width:150},
+            //{title:"ID@Mandy", field:"mandy_customer_id", sorter:"string", width:150},
+            {
+                title: "Name",
+                field: "name",
+                headerFilter: "input",
+                sorter: "string",
+                minWidth: 100
+            },
+            {
+                title: "Arrival Date",
+                field: "arrive_at",
+                formatter: function(cell, formatterParams, onRendered) {
+                    try {
+                        if (cell.getValue() == null) return '';
+                        let dt = luxon.DateTime.fromMillis(cell.getValue() * 1000);
+                        return dt.setLocale("zh").toFormat(formatterParams.outputFormat);
+                    } catch (error) {
+                        return formatterParams.invalidPlaceholder;
+                    }
+                },
+                formatterParams: {
+                    outputFormat: "yyyy年MM月dd日",
+                    invalidPlaceholder: "(invalid date)",
+                    timezone: "Asia/Hong_Kong",
+                },
+                hozAlign: "center",
+                width: 150
+            },
+            {
+                title: "Status",
+                field: "status",
+                hozAlign: "center",
+                width: 130
+            },
+            {
+                title: "Auto<br>Auth?",
+                field: "is_auto_auth",
+                formatter: "toggle",
+                hozAlign: "center",
+                width: 80
+            },
+            {
+                title: "Amount<br>Authorized",
+                field: "amount_authorized",
+                formatter: "money",
+                formatterParams: {
+                    symbol: "円",
+                    symbolAfter: true,
+                    precision: false
+                },
+                hozAlign: "right",
+                width: 100
+            },
+            {
+                title: "Amount<br>Captured",
+                field: "amount_captured",
+                formatter: "money",
+                formatterParams: {
+                    symbol: "円",
+                    symbolAfter: true,
+                    precision: false
+                },
+                hozAlign: "right",
+                width: 100
+            },
+            {
+                title: "Amount<br>to Capture",
+                field: "amount_to_capture",
+                formatter: "money",
+                formatterParams: {
+                    symbol: "円",
+                    symbolAfter: true,
+                    precision: false
+                },
+                hozAlign: "right",
+                width: 120
+            },
+            {
+                title: "Auto Auth<br>Starts At",
+                field: "auto_auth_starts_at",
+                formatter: function(cell, formatterParams, onRendered) {
+                    if (cell.getValue() == null) return formatterParams.nullPlaceholder;
+                    try {
+                        let dt = luxon.DateTime.fromMillis(cell.getValue() * 1000);
+                        return dt.setLocale("zh").toFormat(formatterParams.outputFormat);
+                    } catch (error) {
+                        return formatterParams.invalidPlaceholder;
+                    }
+                },
+                formatterParams: {
+                    outputFormat: "yyyy年MM月dd日 hh:mma EEEE",
+                    invalidPlaceholder: "(invalid date)",
+                    nullPlaceholder: "",
+                    timezone: "Asia/Hong_Kong",
+                },
+                hozAlign: "center",
+                width: 185
+            },
+            {
+                title: "Last Auto Auth<br>Pauses At",
+                field: "auto_auth_pauses_at",
+                formatter: function(cell, formatterParams, onRendered) {
+                    if (cell.getValue() == null) return formatterParams.nullPlaceholder;
+                    try {
+                        let dt = luxon.DateTime.fromMillis(cell.getValue() * 1000);
+                        return dt.setLocale("zh").toFormat(formatterParams.outputFormat);
+                    } catch (error) {
+                        return formatterParams.invalidPlaceholder;
+                    }
+                },
+                formatterParams: {
+                    outputFormat: "yyyy年MM月dd日 hh:mma EEEE",
+                    invalidPlaceholder: "(invalid date)",
+                    nullPlaceholder: "",
+                    timezone: "Asia/Hong_Kong",
+                },
+                hozAlign: "center",
+                width: 185
+            },
+            {
+                title: "Last Retry At",
+                field: "last_retry_at",
+                formatter: function(cell, formatterParams, onRendered) {
+                    if (cell.getValue() == null) return formatterParams.nullPlaceholder;
+                    try {
+                        let dt = luxon.DateTime.fromMillis(cell.getValue() * 1000);
+                        return dt.setLocale("zh").toFormat(formatterParams.outputFormat);
+                    } catch (error) {
+                        return formatterParams.invalidPlaceholder;
+                    }
+                },
+                formatterParams: {
+                    outputFormat: "yyyy年MM月dd日 hh:mma EEEE",
+                    invalidPlaceholder: "(invalid date)",
+                    nullPlaceholder: "",
+                    timezone: "Asia/Hong_Kong",
+                },
+                hozAlign: "center",
+                width: 185
+            },
+            {
+                title: "Retry<br>Count",
+                field: "retry_count",
+                sorter: "string",
+                width: 50
+            },
+            {
+                title: "Last 4 digit",
+                field: "last4",
+                width: 50
+            },
+            {
+                title: "Brand",
+                field: "brand",
+                sorter: "string",
+                width: 80
+            },
+            {
+                title: "Country",
+                field: "country",
+                sorter: "string",
+                width: 40
+            },
+            {
+                title: "Updated",
+                field: "updated_at",
+                formatter: function(cell, formatterParams, onRendered) {
+                    if (cell.getValue() == null) return formatterParams.nullPlaceholder;
+                    try {
+                        let dt = luxon.DateTime.fromMillis(cell.getValue() * 1000);
+                        return dt.setLocale("zh").toFormat(formatterParams.outputFormat);
+                    } catch (error) {
+                        return formatterParams.invalidPlaceholder;
+                    }
+                },
+                formatterParams: {
+                    outputFormat: "yyyy年MM月dd日 hh:mma EEEE",
+                    invalidPlaceholder: "(invalid date)",
+                    nullPlaceholder: "",
+                    timezone: "Asia/Hong_Kong",
+                },
+                hozAlign: "center",
+                width: 185
+            },
+            {
+                title: "Created",
+                field: "created_at",
+                formatter: function(cell, formatterParams, onRendered) {
+                    try {
+                        let dt = luxon.DateTime.fromMillis(cell.getValue() * 1000);
+                        return dt.setLocale("zh").toFormat(formatterParams.outputFormat);
+                    } catch (error) {
+                        return formatterParams.invalidPlaceholder;
+                    }
+                },
+                formatterParams: {
+                    outputFormat: "yyyy年MM月dd日 hh:mma EEEE",
+                    invalidPlaceholder: "(invalid date)",
+                    timezone: "Asia/Hong_Kong",
+                },
+                hozAlign: "center",
+                width: 185
+            }
+        ]
+    });
+    table2.on("rowSelected", function(row) {
+        row_selected_scheduled_capture = true;
+    });
+    table2.on("rowDeselected", function(row) {
+        row_selected_scheduled_capture = false;
 
-    //table.setData("customers.json", {}, ajaxConfig); //make ajax request with advanced config options
+    });
 </script>
 
 <script>
-    var row_selected = false;
+    var row_selected_past_captures = false;
+    var row_selected_scheduled_capture = false;
     jQuery(function($) {
         $('body').on('change', '#flexSwitchCheckChecked', function(e) {
             if ($('#flexSwitchCheckChecked').is(':checked')) {
@@ -236,11 +468,36 @@
                 return false;
             } */
 
-            if (!row_selected) {
+            if (!row_selected_past_captures) {
                 $('.html_template .alert .text').text('Please select a row on the table.');
                 $('.html_template .alert').clone().appendTo('.messages');
                 return false;
             }
+        }).on('change', '.resume_auto_auth', function(e) {
+            var this_input = $(this);
+            $.ajax({
+                    url: "ajax_set.php",
+                    data: {
+                        type: 'resume_auto_auth',
+                        id: $(this).data('id'),
+                        value: $(this).is(':checked'),
+                        h: (Math.random() + 1).toString(36).substring(7)
+                    }
+                })
+                .done(function(data) {
+                    if ('success' in data) {
+                        if (data.success != null) {
+                            table2.updateData([{
+                                id: this_input.data('id'),
+                                auto_auth_pauses_at: data.success
+                            }]);
+                        }
+                        return true;
+                    }
+                    $('#js_alert').slideDown();
+                    $('#js_alert .text').text('DB update error:' + data.error);
+                    return false;
+                });
         })
         /* .on('click', 'form#add_card [type="submit"]', function(e) {
                     $('.messages').html('');

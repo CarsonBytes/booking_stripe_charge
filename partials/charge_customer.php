@@ -2,7 +2,7 @@
     <input type="hidden" name="charge_customer" value="1" />
     <input type="hidden" name="isTesting" value="<?php echo isset($_POST['isTesting']) ? $_POST['isTesting'] : 0; ?>" />
 
-    <div class="mt-3" id="example-table"></div>
+    <div class="mt-3" id="charge_customer_table"></div>
 
     <input type="hidden" name="mandy_customer_id" value="">
 
