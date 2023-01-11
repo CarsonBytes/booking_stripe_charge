@@ -55,6 +55,7 @@
         ajaxParams: function() {
             return {
                 type: 'past_captures',
+                is_testing: $('form#charge input[name="isTesting"]').val(),
                 h: (Math.random() + 1).toString(36).substring(7)
             };
         },
@@ -199,7 +200,7 @@
         toggle: function(cell, formatterParams) {
             var is_check = (cell.getValue() == 1) ? "checked" : "";
             var text = is_check ? "On" : "Off";
-            return "<div class=\"form-check form-switch\"><label class=\"form-check-label\" role=\"button\"><input class=\"form-check-input resume_auto_auth\" type=\"checkbox\" role=\"switch\" data-id=\"" + cell.getRow().getData().id + "\" " + is_check + ">" + text + "</label></div>";
+            return "<div class=\"form-check form-switch\"><label class=\"form-check-label\" role=\"button\"><input class=\"form-check-input resume_auto_auth\" type=\"checkbox\" role=\"switch\" data-id=\"" + cell.getRow().getData().id + "\" " + is_check + "><span>" + text + "</span></label></div>";
         },
     });
     var table2 = new Tabulator("#scheduled_captures_table", {
@@ -213,6 +214,7 @@
         ajaxParams: function() {
             return {
                 type: 'scheduled_captures',
+                is_testing: $('form#charge input[name="isTesting"]').val(),
                 h: (Math.random() + 1).toString(36).substring(7)
             };
         },
@@ -446,6 +448,8 @@
             } else {
                 $('[name="isTesting"]').val(1);
             }
+            table.setData();
+            table2.setData();
         }).on('click', '.dropdown-menu .visa', function(e) {
             e.preventDefault();
             var year = new Date().getFullYear() + 10;
@@ -491,6 +495,9 @@
                                 id: this_input.data('id'),
                                 auto_auth_pauses_at: data.success
                             }]);
+                            this_input.parents('label').find('span').text('Off');
+                        }else{
+                            this_input.parents('label').find('span').text('On');
                         }
                         return true;
                     }

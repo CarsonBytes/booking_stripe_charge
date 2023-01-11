@@ -27,11 +27,14 @@ foreach ($array as $set) {
     unset($customer_data['brand']);
     unset($customer_data['country']);
     unset($customer_data['amount']);
-    unset($customer_data['is_live']);
     unset($customer_data['charger']);
 
-    $result = $db->where('wasaike_customer_id', $customer_data['wasaike_customer_id'])->get('customer');
-    if ($db->count == 0) $db->insert('customer', $customer_data);
+    $result = $db->where('wasaike_customer_id', $customer_data['wasaike_customer_id'])->getOne('customer');
+    if ($db->count == 0) {
+        $db->insert('customer', $customer_data);
+    } else {
+        $db->where('id', $result['id'])->update('customer', ['amount_captured' => $db->inc($customer_data['amount_captured'])]);
+    }
 
     $capture_data = $set;
     $capture_data['created_at'] = date('Y-m-d H:i:s', $capture_data['created']);

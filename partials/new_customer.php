@@ -47,7 +47,7 @@
             </div>
         </div>
         <div class="form-floating col">
-            <input type="text" class="amount form-control" name="amount" value="<?php echo isset($_SESSION['form_data']['amount']) ? $_SESSION['form_data']['amount'] : '' ?>" autocomplete="off" pattern="\d*" required placeholder="Total">
+            <input type="number" class="amount form-control" name="amount" value="<?php echo isset($_SESSION['form_data']['amount']) ? $_SESSION['form_data']['amount'] : '' ?>" autocomplete="off" required placeholder="Total">
             <label for="amount">Total</label>
         </div>
 

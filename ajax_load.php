@@ -9,6 +9,10 @@ if ($_GET['type'] == 'past_captures') {
     $db->orderBy("lc.id", "desc")
         ->join("customer c", "c.id=lc.customer_id", "LEFT");
 
+    if (isset($_GET['is_testing'])) {
+        $db->where('lc.is_live', $_GET['is_testing'] == 0 ? 1 : 0);
+    }
+
     if (isset($_GET['filter'])) {
         $db->where('c.customer_name', '%' . $_GET['filter'][0]['value'] . '%', 'like');
     }
@@ -16,6 +20,7 @@ if ($_GET['type'] == 'past_captures') {
         'log_capture lc',
         [($page - 1) * $items_per_page, $items_per_page],
         [
+            'lc.is_live',
             'lc.shop',
             'c.wasaike_customer_id',
             'c.mandy_customer_id',
@@ -32,6 +37,9 @@ if ($_GET['type'] == 'past_captures') {
         ]
     );
 
+    if (isset($_GET['is_testing'])) {
+        $db->where('is_live', $_GET['is_testing'] == 0 ? 1 : 0);
+    }
     if (isset($_GET['filter'])) {
         $db->where('customer_name', '%' . $_GET['filter'][0]['value'] . '%', 'like');
     }
@@ -40,6 +48,10 @@ if ($_GET['type'] == 'past_captures') {
 
     $db->orderBy("COALESCE(updated_at, created_at)", "desc");
     $db->orderBy("id", "desc");
+
+    if (isset($_GET['is_testing'])) {
+        $db->where('is_live', $_GET['is_testing'] == 0 ? 1 : 0);
+    }
 
     $result = $db->get(
         'customer c',
@@ -65,6 +77,9 @@ if ($_GET['type'] == 'past_captures') {
         ]
     );
 
+    if (isset($_GET['is_testing'])) {
+        $db->where('is_live', $_GET['is_testing'] == 0 ? 1 : 0);
+    }
     $count = $db->getValue("customer", "count(*)");
 }
 /* echo '<pre>';

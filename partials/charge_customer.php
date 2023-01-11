@@ -30,7 +30,7 @@
             </div>
         </div>
         <div class="form-floating col">
-            <input type="text" class="amount form-control" name="amount" value="<?php echo isset($_POST['amount']) ? $_POST['amount'] : '' ?>" autocomplete="off" pattern="\d*" required placeholder="Amount">
+            <input type="number" class="amount form-control" name="amount" value="<?php echo isset($_POST['amount']) ? $_POST['amount'] : '' ?>" autocomplete="off" required placeholder="Amount">
             <label for="amount">Amount</label>
         </div>
     </div>
