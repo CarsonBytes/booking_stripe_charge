@@ -26,8 +26,8 @@ if ($_GET['type'] == 'past_captures') {
             'c.mandy_customer_id',
             'lc.stripe_charge_id',
             'lc.customer_name as name',
-            'UNIX_TIMESTAMP(c.arrive_at) as arrive_at',
-            'UNIX_TIMESTAMP(lc.created_at) as created',
+            "UNIX_TIMESTAMP(CONVERT_TZ(arrive_at, '+08:00', @@session.time_zone)) as arrive_at",
+            "UNIX_TIMESTAMP(CONVERT_TZ(lc.created_at, '+08:00', @@session.time_zone)) as created_at",
             'lc.status',
             'lc.amount',
             'c.amount_to_capture',
@@ -59,7 +59,7 @@ if ($_GET['type'] == 'past_captures') {
         [
             'c.id',
             'c.customer_name as name',
-            'UNIX_TIMESTAMP(c.arrive_at) as arrive_at',
+            "UNIX_TIMESTAMP(CONVERT_TZ(arrive_at, '+08:00', @@session.time_zone)) as arrive_at",
             'c.status',
             'c.amount_authorized',
             'c.amount_captured',
@@ -68,12 +68,12 @@ if ($_GET['type'] == 'past_captures') {
             'c.card_brand as brand',
             'c.card_country as country',
             'is_auto_auth',
-            'UNIX_TIMESTAMP(auto_auth_starts_at) as auto_auth_starts_at',
-            'UNIX_TIMESTAMP(auto_auth_pauses_at) as auto_auth_pauses_at',
-            'UNIX_TIMESTAMP(last_retry_at) as last_retry_at',
+            "UNIX_TIMESTAMP(CONVERT_TZ(auto_auth_starts_at, '+08:00', @@session.time_zone)) as auto_auth_starts_at",
+            "UNIX_TIMESTAMP(CONVERT_TZ(auto_auth_pauses_at, '+08:00', @@session.time_zone)) as auto_auth_pauses_at",
+            "UNIX_TIMESTAMP(CONVERT_TZ(last_retry_at, '+08:00', @@session.time_zone)) as last_retry_at",
             'retry_count',
-            'UNIX_TIMESTAMP(c.updated_at) as updated_at',
-            'UNIX_TIMESTAMP(c.created_at) as created_at'
+            "UNIX_TIMESTAMP(CONVERT_TZ(c.updated_at, '+08:00', @@session.time_zone)) as updated_at",
+            "UNIX_TIMESTAMP(CONVERT_TZ(c.created_at, '+08:00', @@session.time_zone)) as created_at"
         ]
     );
 

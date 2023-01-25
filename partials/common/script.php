@@ -106,8 +106,8 @@
                 width: 150
             },
             {
-                title: "Created",
-                field: "created",
+                title: "Created At (HKT)",
+                field: "created_at",
                 formatter: function(cell, formatterParams, onRendered) {
                     try {
                         let dt = luxon.DateTime.fromMillis(cell.getValue() * 1000);
@@ -143,7 +143,7 @@
                 width: 100
             },
             {
-                title: "Amount <br>to Capture",
+                title: "Amount<br>to Capture",
                 field: "amount_to_capture",
                 formatter: "money",
                 formatterParams: {
@@ -302,7 +302,7 @@
                 width: 120
             },
             {
-                title: "Auto Auth<br>Starts At",
+                title: "Auto Auth<br>Starts At (HKT)",
                 field: "auto_auth_starts_at",
                 formatter: function(cell, formatterParams, onRendered) {
                     if (cell.getValue() == null) return formatterParams.nullPlaceholder;
@@ -323,7 +323,7 @@
                 width: 185
             },
             {
-                title: "Last Auto Auth<br>Pauses At",
+                title: "Last Auto Auth<br>Pauses At (HKT)",
                 field: "auto_auth_pauses_at",
                 formatter: function(cell, formatterParams, onRendered) {
                     if (cell.getValue() == null) return formatterParams.nullPlaceholder;
@@ -344,7 +344,7 @@
                 width: 185
             },
             {
-                title: "Last Retry At",
+                title: "Last Retry At (HKT)",
                 field: "last_retry_at",
                 formatter: function(cell, formatterParams, onRendered) {
                     if (cell.getValue() == null) return formatterParams.nullPlaceholder;
@@ -388,7 +388,7 @@
                 width: 40
             },
             {
-                title: "Updated",
+                title: "Updated At (HKT)",
                 field: "updated_at",
                 formatter: function(cell, formatterParams, onRendered) {
                     if (cell.getValue() == null) return formatterParams.nullPlaceholder;
@@ -409,7 +409,7 @@
                 width: 185
             },
             {
-                title: "Created",
+                title: "Created At (HKT)",
                 field: "created_at",
                 formatter: function(cell, formatterParams, onRendered) {
                     try {
