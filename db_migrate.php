@@ -6,10 +6,10 @@ $data = file_get_contents('customers.json');
 
 $array = json_decode($data, true);
 
-$db->rawQuery('SET FOREIGN_KEY_CHECKS = 0;');
-$db->rawQuery('truncate table stripe_booking.customer');
-$db->rawQuery('truncate table stripe_booking.log_capture;;');
-$db->rawQuery('SET FOREIGN_KEY_CHECKS = 1;');
+$db->rawQuery('SET FOREIGN_KEY_CHECKS = 0');
+$db->rawQuery('truncate table customer');
+$db->rawQuery('truncate table log_capture');
+$db->rawQuery('SET FOREIGN_KEY_CHECKS = 1');
 
 foreach ($array as $set) {
     $customer_data = $set;

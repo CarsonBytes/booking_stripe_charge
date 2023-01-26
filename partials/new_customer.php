@@ -26,8 +26,8 @@
             <label for="cc-cvc">CVC</label>
         </div>
         <div class="form-floating col">
-            <input autocomplete="off" type="text" id="arrive_at" class="form-control" name="arrive_at" placeholder="Arrival Date" value="<?php echo isset($_SESSION['form_data']['arrive_at']) ? $_SESSION['form_data']['arrive_at'] : '' ?>">
-            <label for="arrive_at">Arrival Date</label>
+            <input autocomplete="off" type="text" id="arrive_on" class="form-control" name="arrive_on" placeholder="Arrival Date" value="<?php echo isset($_SESSION['form_data']['arrive_on']) ? $_SESSION['form_data']['arrive_on'] : '' ?>">
+            <label for="arrive_on">Arrival Date</label>
         </div>
     </div>
 

@@ -26,7 +26,7 @@ if ($_GET['type'] == 'past_captures') {
             'c.mandy_customer_id',
             'lc.stripe_charge_id',
             'lc.customer_name as name',
-            "UNIX_TIMESTAMP(CONVERT_TZ(arrive_at, '+08:00', @@session.time_zone)) as arrive_at",
+            "UNIX_TIMESTAMP(CONVERT_TZ(arrive_on, '+08:00', @@session.time_zone)) as arrive_on",
             "UNIX_TIMESTAMP(CONVERT_TZ(lc.created_at, '+08:00', @@session.time_zone)) as created_at",
             'lc.status',
             'lc.amount',
@@ -59,7 +59,7 @@ if ($_GET['type'] == 'past_captures') {
         [
             'c.id',
             'c.customer_name as name',
-            "UNIX_TIMESTAMP(CONVERT_TZ(arrive_at, '+08:00', @@session.time_zone)) as arrive_at",
+            "UNIX_TIMESTAMP(CONVERT_TZ(arrive_on, '+08:00', @@session.time_zone)) as arrive_on",
             'c.status',
             'c.amount_authorized',
             'c.amount_captured',

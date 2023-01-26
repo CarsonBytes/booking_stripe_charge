@@ -59,7 +59,7 @@
                 h: (Math.random() + 1).toString(36).substring(7)
             };
         },
-        paginationSize: 5, // this option can take any positive integer value (default = 10)
+        paginationSize: 10, // this option can take any positive integer value (default = 10)
         clipboard: true,
         clipboardCopyStyled: false,
         placeholder: "No Data Set",
@@ -87,7 +87,7 @@
             },
             {
                 title: "Arrival Date",
-                field: "arrive_at",
+                field: "arrive_on",
                 formatter: function(cell, formatterParams, onRendered) {
                     try {
                         if (cell.getValue() == null) return '';
@@ -180,14 +180,13 @@
         $('form#charge input[name=customer_name]').val(row._row.data.name);
         $('form#charge input[name=last4]').val(row._row.data.last4);
         $('form#charge input[name=amount]').val(row._row.data.amount_to_capture);
-        $('#flexSwitchCheckChecked').prop('checked', row._row.data.is_live == 1 ? true : false).trigger('change');
         row_selected_past_captures = true;
     });
     table.on("rowDeselected", function(row) {
         row_selected_past_captures = false;
     });
 
-    $('#arrive_at').datepicker({
+    $('#arrive_on').datepicker({
         format: "yyyy/mm/dd",
         language: "zh-TW",
         todayHighlight: true,
@@ -218,7 +217,7 @@
                 h: (Math.random() + 1).toString(36).substring(7)
             };
         },
-        paginationSize: 5, // this option can take any positive integer value (default = 10)
+        paginationSize: 10, // this option can take any positive integer value (default = 10)
         clipboard: true,
         clipboardCopyStyled: false,
         placeholder: "No Data Set",
@@ -234,7 +233,7 @@
             },
             {
                 title: "Arrival Date",
-                field: "arrive_at",
+                field: "arrive_on",
                 formatter: function(cell, formatterParams, onRendered) {
                     try {
                         if (cell.getValue() == null) return '';

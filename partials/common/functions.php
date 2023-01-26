@@ -52,7 +52,7 @@ function handleFormSubmit($post)
             'card_brand' => $customer->sources->data[0]->brand,
             'card_country' => $customer->sources->data[0]->country,
             'amount_to_capture' => $post['amount'] ?? null,
-            'arrive_at' => validateDate($post['arrive_at']) ? $post['arrive_at'] : null,
+            'arrive_on' => validateDate($post['arrive_on']) ? $post['arrive_on'] : null,
         ]);
         if (!$customer_db_result)
             $_SESSION['exception'][] = 'Exception: Customer insert failed.' . $db->getLastError();
@@ -141,7 +141,7 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
 
             $capture_data['amount'] = $captured_authorized_amount;
 
-            $_SESSION['message'][] = "The authorized amount $captured_authorized_amount JPY @ $shop is captured. There are still $amount_to_capture JPY to capture.";
+            $_SESSION['message'][] = "The amount $captured_authorized_amount JPY @ $shop is authorized. There are still $amount_to_capture JPY to capture.";
 
             //insert log_capture
             $log_capture_db_result = $db->insert('log_capture', $capture_data + [
