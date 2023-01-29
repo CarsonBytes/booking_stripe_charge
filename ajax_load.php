@@ -52,6 +52,9 @@ if ($_GET['type'] == 'past_captures') {
     if (isset($_GET['is_testing'])) {
         $db->where('is_live', $_GET['is_testing'] == 0 ? 1 : 0);
     }
+    if (isset($_GET['filter'])) {
+        $db->where('customer_name', '%' . $_GET['filter'][0]['value'] . '%', 'like');
+    }
 
     $result = $db->get(
         'customer c',

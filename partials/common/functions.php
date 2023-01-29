@@ -42,6 +42,7 @@ function handleFormSubmit($post)
         }
 
         $customer_db_result = $db->insert('customer', [
+            'is_live' => $post['isTesting'] == 1 ? 0 : 1,
             'wasaike_customer_id' => $wasaike_customer_id,
             'mandy_customer_id' => $mandy_customer_id,
             'customer_name' => $post['name'] ?? null,
@@ -106,7 +107,7 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
     $amount_captured = $customer['amount_captured'];
 
     $capture_data = [
-        'is_live' => $is_live,
+        'is_live' => $is_live ? 1 : 0,
         'shop' => $shop == 'mandy' ? 'M' : 'W',
         'stripe_customer_id' => $stripe_customer_id,
         'customer_id' => $customer['id'] ?? null,
@@ -120,7 +121,7 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
         'amount' => $amount_to_capture,
     ];
 
-    //if stripe_charge_id exists and is a capture action, then start to capture authorized amount
+    //check if stripe_charge_id exists and it'ss a capture action, then capture the authorized amount first
     if ($stripe_charge_id != '' && $is_capture) {
         $stripe = new \Stripe\StripeClient(getStripeAPIKey($shop, $is_live));
         $charge = $stripe->charges->retrieve(
@@ -138,10 +139,11 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
 
             $amount_captured += $captured_authorized_amount;
             $amount_to_capture = $customer['amount_to_capture'] - $captured_authorized_amount;
+            $amount_authorized -=  $captured_authorized_amount;
 
             $capture_data['amount'] = $captured_authorized_amount;
 
-            $_SESSION['message'][] = "The amount $captured_authorized_amount JPY @ $shop is authorized. There are still $amount_to_capture JPY to capture.";
+            $_SESSION['message'][] = "The authorized amount of $captured_authorized_amount JPY @ $shop is captured. There are still $amount_to_capture JPY to capture.";
 
             //insert log_capture
             $log_capture_db_result = $db->insert('log_capture', $capture_data + [
@@ -162,7 +164,11 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
         }
     }
 
-    // if the captured authorized amount is still not enough to cover the amount to capture, create a new charge and authorize / capture the rest amount right away
+    /**
+     * This is the default action for new authorize/capture.
+     * In case the captured authorized amount is still not enough to cover the amount to capture,
+     * create a new charge and authorize / capture the rest amount right away
+     */
     if ($amount_to_capture > 0) {
 
         $charge = createCharge(getStripeAPIKey($shop, $is_live), $stripe_customer_id, $amount_to_capture, $is_capture);
@@ -185,7 +191,7 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
                     $amount_to_capture = $customer['amount_to_capture'];
                 }
             }
-            $_SESSION['message'][] = "$amount_captured JPY @ $shop is captured. There are still $amount_to_capture JPY to capture. Total is $amount.";
+            $_SESSION['message'][] = "New amount of $amount_captured JPY @ $shop is captured. There are still $amount_to_capture JPY to capture. Total is $amount.";
 
             //insert log_capture
             $log_capture_db_result = $db->insert('log_capture', $capture_data + [
