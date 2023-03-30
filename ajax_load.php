@@ -6,8 +6,13 @@ $page = $_GET['page'];
 $items_per_page = $_GET['size'];
 
 if ($_GET['type'] == 'past_captures') {
-    $db->orderBy("lc.id", "desc")
-        ->join("customer c", "c.id=lc.customer_id", "LEFT");
+    $db->join("customer c", "c.id=lc.customer_id", "LEFT");
+
+    if (isset($_GET['sort'])) {
+        $db->orderBy($_GET['sort'][0]['field'], $_GET['sort'][0]['dir']);
+    }else{
+        $db->orderBy("lc.id", "desc");
+    }
 
     if (isset($_GET['is_testing'])) {
         $db->where('lc.is_live', $_GET['is_testing'] == 0 ? 1 : 0);
@@ -20,7 +25,6 @@ if ($_GET['type'] == 'past_captures') {
         'log_capture lc',
         [($page - 1) * $items_per_page, $items_per_page],
         [
-            'lc.is_live',
             'lc.shop',
             'c.wasaike_customer_id',
             'c.mandy_customer_id',
@@ -31,7 +35,7 @@ if ($_GET['type'] == 'past_captures') {
             'lc.status',
             'lc.amount',
             'c.amount_to_capture',
-            'SUBSTRING(lc.card_number, -4, 4) as last4',
+            'SUBSTRING(lc.card_number, -4, 4) as card_number',
             'lc.card_brand as brand',
             'lc.card_country as country'
         ]
@@ -46,14 +50,27 @@ if ($_GET['type'] == 'past_captures') {
     $count = $db->getValue("log_capture", "count(*)");
 } else if ($_GET['type'] == 'scheduled_captures') {
 
-    $db->orderBy("COALESCE(updated_at, created_at)", "desc");
-    $db->orderBy("id", "desc");
+    if (isset($_GET['sort'])) {
+        $db->orderBy($_GET['sort'][0]['field'], $_GET['sort'][0]['dir']);
+    }else{
+        $db->orderBy("COALESCE(updated_at, created_at)", "desc");
+        $db->orderBy("id", "desc");
+    }
 
     if (isset($_GET['is_testing'])) {
         $db->where('is_live', $_GET['is_testing'] == 0 ? 1 : 0);
     }
+    if (isset($_GET['is_show_captured']) && $_GET['is_show_captured'] == 0) {
+        $db->where('status', 'Captured', '!=');
+    }
     if (isset($_GET['filter'])) {
-        $db->where('customer_name', '%' . $_GET['filter'][0]['value'] . '%', 'like');
+        foreach($_GET['filter'] as $filter){
+            if ($filter['field'] == 'customer_name'){
+                $db->where($filter['field'], '%' . $filter['value'] . '%', 'like');
+            }else{
+                $db->where($filter['field'], $filter['value'], $filter['type']);
+            }
+        }
     }
 
     $result = $db->get(
@@ -61,16 +78,16 @@ if ($_GET['type'] == 'past_captures') {
         [($page - 1) * $items_per_page, $items_per_page],
         [
             'c.id',
-            'c.customer_name as name',
+            'c.customer_name as customer_name',
             "UNIX_TIMESTAMP(CONVERT_TZ(arrive_on, '+08:00', @@session.time_zone)) as arrive_on",
             'c.status',
             'c.amount_authorized',
             'c.amount_captured',
             'c.amount_to_capture',
-            'SUBSTRING(c.card_number, -4, 4) as last4',
-            'c.card_brand as brand',
-            'c.card_country as country',
-            'is_auto_auth',
+            'SUBSTRING(c.card_number, -4, 4) as card_number',
+            'c.card_brand as card_brand',
+            'c.card_country as card_country',
+            'c.is_auto_auth',
             "UNIX_TIMESTAMP(CONVERT_TZ(auto_auth_starts_at, '+08:00', @@session.time_zone)) as auto_auth_starts_at",
             "UNIX_TIMESTAMP(CONVERT_TZ(auto_auth_pauses_at, '+08:00', @@session.time_zone)) as auto_auth_pauses_at",
             "UNIX_TIMESTAMP(CONVERT_TZ(last_retry_at, '+08:00', @@session.time_zone)) as last_retry_at",
@@ -82,6 +99,18 @@ if ($_GET['type'] == 'past_captures') {
 
     if (isset($_GET['is_testing'])) {
         $db->where('is_live', $_GET['is_testing'] == 0 ? 1 : 0);
+    }
+    if (isset($_GET['is_show_captured']) && $_GET['is_show_captured'] == 0) {
+        $db->where('status', 'Captured', '!=');
+    }
+    if (isset($_GET['filter'])) {
+        foreach($_GET['filter'] as $filter){
+            if ($filter['field'] == 'customer_name'){
+                $db->where($filter['field'], '%' . $filter['value'] . '%', 'like');
+            }else{
+                $db->where($filter['field'], $filter['value'], $filter['type']);
+            }
+        }
     }
     $count = $db->getValue("customer", "count(*)");
 }

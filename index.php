@@ -60,10 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="header">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link <?php if (!isset($_SESSION['form_data']['scheduled_captures']) && !isset($_SESSION['form_data']['new_customer'])) { ?>active<?php } ?>" id="scheduled_captures-tab" data-bs-toggle="tab" data-bs-target="#scheduled_captures" type="button" role="tab" aria-controls="#scheduled_captures" aria-selected="true">Scheduled Captures</button>
+                <button class="nav-link <?php if (!isset($_SESSION['form_data']['scheduled_captures']) && !isset($_SESSION['form_data']['new_customer'])) { ?>active<?php } ?>" id="scheduled_captures-tab" data-bs-toggle="tab" data-bs-target="#scheduled_captures" type="button" role="tab" aria-controls="#scheduled_captures" aria-selected="true">Scheduled Captures
+                <img src="/img/icons8-update-left-rotation-24.png" class="refresh_scheduled_captures" /></button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link <?php if (isset($_SESSION['form_data']['charge_customer'])) { ?>active<?php } ?>" id="past_captures-tab" data-bs-toggle="tab" data-bs-target="#past_captures" type="button" role="tab" aria-controls="past_captures" aria-selected="true">Past Captures</button>
+                <button class="nav-link <?php if (isset($_SESSION['form_data']['charge_customer'])) { ?>active<?php } ?>" id="past_captures-tab" data-bs-toggle="tab" data-bs-target="#past_captures" type="button" role="tab" aria-controls="past_captures" aria-selected="true">Past Captures
+                <img src="/img/icons8-update-left-rotation-24.png" class="refresh_past_captures" /></button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link <?php if (isset($_SESSION['form_data']['new_customer'])) { ?>active<?php } ?>" id="add-charge-tab" data-bs-toggle="tab" data-bs-target="#add-charge" type="button" role="tab" aria-controls="add-charge" aria-selected="false">New Customer</button>

@@ -45,12 +45,16 @@
 
 <script>
     var table = new Tabulator("#charge_customer_table", {
+        initialSort:[
+            {column:"created_at", dir:"desc"},
+        ],
         height: false,
         layout: "fitColumns",
         selectable: 1,
         pagination: true,
         paginationMode: "remote",
         filterMode: "remote",
+        sortMode:"remote",
         ajaxURL: "/ajax_load.php",
         ajaxParams: function() {
             return {
@@ -66,23 +70,21 @@
         columns: [
             //{title:"ID@Wasaike", field:"wasaike_customer_id", sorter:"string", width:150},
             //{title:"ID@Mandy", field:"mandy_customer_id", sorter:"string", width:150},
-            {
+            /* {
                 title: "Live?",
                 field: "is_live",
                 formatter: 'tickCross',
                 width: 30
-            },
+            }, */
             {
                 title: "Shop",
                 field: "shop",
-                sorter: "string",
                 width: 30
             },
             {
                 title: "Name",
                 field: "name",
                 headerFilter: "input",
-                sorter: "string",
                 minWidth: 100
             },
             {
@@ -156,19 +158,17 @@
             },
             {
                 title: "Last 4 digit",
-                field: "last4",
+                field: "card_number",
                 width: 50
             },
             {
                 title: "Brand",
                 field: "brand",
-                sorter: "string",
                 width: 80
             },
             {
                 title: "Country",
                 field: "country",
-                sorter: "string",
                 width: 40
             }
         ]
@@ -178,7 +178,7 @@
         $('form#charge input[name=wasaike_customer_id]').val(row._row.data.wasaike_customer_id);
         $('form#charge input[name=stripe_charge_id]').val(row._row.data.stripe_charge_id);
         $('form#charge input[name=customer_name]').val(row._row.data.name);
-        $('form#charge input[name=last4]').val(row._row.data.last4);
+        $('form#charge input[name=card_number]').val(row._row.data.card_number);
         $('form#charge input[name=amount]').val(row._row.data.amount_to_capture);
         row_selected_past_captures = true;
     });
@@ -208,12 +208,14 @@
         selectable: 1,
         pagination: true,
         paginationMode: "remote",
+        sortMode:"remote",
         filterMode: "remote",
         ajaxURL: "/ajax_load.php",
         ajaxParams: function() {
             return {
                 type: 'scheduled_captures',
-                is_testing: $('form#charge input[name="isTesting"]').val(),
+                is_testing: $('form#scheduled_captures input[name="isTesting"]').val(),
+                is_show_captured: $('form#scheduled_captures input[name="is_show_captured"]').val(),
                 h: (Math.random() + 1).toString(36).substring(7)
             };
         },
@@ -226,9 +228,8 @@
             //{title:"ID@Mandy", field:"mandy_customer_id", sorter:"string", width:150},
             {
                 title: "Name",
-                field: "name",
+                field: "customer_name",
                 headerFilter: "input",
-                sorter: "string",
                 minWidth: 100
             },
             {
@@ -366,24 +367,21 @@
             {
                 title: "Retry<br>Count",
                 field: "retry_count",
-                sorter: "string",
                 width: 50
             },
             {
                 title: "Last 4 digit",
-                field: "last4",
+                field: "card_number",
                 width: 50
             },
             {
                 title: "Brand",
-                field: "brand",
-                sorter: "string",
+                field: "card_brand",
                 width: 80
             },
             {
                 title: "Country",
-                field: "country",
-                sorter: "string",
+                field: "card_country",
                 width: 40
             },
             {
@@ -449,6 +447,17 @@
             }
             table.setData();
             table2.setData();
+        }).on('change', '#flexSwitchCheckChecked2', function(e) {
+            if ($('#flexSwitchCheckChecked2').is(':checked')) {
+                $('[name="is_show_captured"]').val(1);
+            } else {
+                $('[name="is_show_captured"]').val(0);
+            }
+            table2.setData();
+        }).on('click', '.refresh_scheduled_captures', function(e) {
+            table2.setData();
+        }).on('click', '.refresh_past_captures', function(e) {
+            table.setData();
         }).on('click', '.dropdown-menu .visa', function(e) {
             e.preventDefault();
             var year = new Date().getFullYear() + 10;

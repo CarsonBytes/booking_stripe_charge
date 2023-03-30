@@ -10,9 +10,9 @@
 
     <input type="hidden" name="stripe_charge_id" value="">
 
-    <input type="hidden" name="customer_name" value="">
+    <!-- <input type="hidden" name="customer_name" value="">
 
-    <input type="hidden" name="last4" value="">
+    <input type="hidden" name="card_number" value=""> -->
 
     <div class="row g-3 mt-0 mb-3">
         <div class="col-1" style="min-width: 105px;">
