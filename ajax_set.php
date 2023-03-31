@@ -22,6 +22,25 @@ if ($_GET['type'] == 'resume_auto_auth') {
             ]
         );
     }
+} else if ($_GET['type'] == 'update_cell') {
+    header('Content-Type: application/json; charset=utf-8');
+    $db->where('id', $_GET['id']);
+    $get = $_GET;
+    unset($get['id']);
+    unset($get['type']);
+    if ($db->update('customer', $get)) {
+        echo json_encode(
+            [
+                'success' => true,
+            ]
+        );
+    } else {
+        echo json_encode(
+            [
+                'error' => 'DB Update Error',
+            ]
+        );
+    }
 }
 
 exit();

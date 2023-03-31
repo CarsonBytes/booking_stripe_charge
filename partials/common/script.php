@@ -45,16 +45,17 @@
 
 <script>
     var table = new Tabulator("#charge_customer_table", {
-        initialSort:[
-            {column:"created_at", dir:"desc"},
-        ],
+        initialSort: [{
+            column: "created_at",
+            dir: "desc"
+        }, ],
         height: false,
         layout: "fitColumns",
         selectable: 1,
         pagination: true,
         paginationMode: "remote",
         filterMode: "remote",
-        sortMode:"remote",
+        sortMode: "remote",
         ajaxURL: "/ajax_load.php",
         ajaxParams: function() {
             return {
@@ -208,7 +209,7 @@
         selectable: 1,
         pagination: true,
         paginationMode: "remote",
-        sortMode:"remote",
+        sortMode: "remote",
         filterMode: "remote",
         ajaxURL: "/ajax_load.php",
         ajaxParams: function() {
@@ -216,6 +217,7 @@
                 type: 'scheduled_captures',
                 is_testing: $('form#scheduled_captures input[name="isTesting"]').val(),
                 is_show_captured: $('form#scheduled_captures input[name="is_show_captured"]').val(),
+                is_show_refunded: $('form#scheduled_captures input[name="is_show_refunded"]').val(),
                 h: (Math.random() + 1).toString(36).substring(7)
             };
         },
@@ -256,15 +258,23 @@
                 title: "Status",
                 field: "status",
                 hozAlign: "center",
-                width: 130
+                width: 130,
+                editor: "list",
+                editorParams: {
+                    values: {
+                        "Captured": "Captured",
+                        "Partially Captured": "Partially Captured",
+                        "Refunded": "Refunded",
+                    }
+                }
             },
-            {
+            /* {
                 title: "Auto<br>Auth?",
                 field: "is_auto_auth",
                 formatter: "toggle",
                 hozAlign: "center",
                 width: 80
-            },
+            }, */
             {
                 title: "Amount<br>Authorized",
                 field: "amount_authorized",
@@ -301,7 +311,7 @@
                 hozAlign: "right",
                 width: 120
             },
-            {
+            /* {
                 title: "Auto Auth<br>Starts At (HKT)",
                 field: "auto_auth_starts_at",
                 formatter: function(cell, formatterParams, onRendered) {
@@ -368,7 +378,7 @@
                 title: "Retry<br>Count",
                 field: "retry_count",
                 width: 50
-            },
+            }, */
             {
                 title: "Last 4 digit",
                 field: "card_number",
@@ -431,7 +441,26 @@
     });
     table2.on("rowDeselected", function(row) {
         row_selected_scheduled_capture = false;
-
+    });
+    table2.on("cellEdited", function(cell) {
+        let data = cell.getData();
+        $.ajax({
+                url: "ajax_set.php",
+                data: {
+                    type: 'update_cell',
+                    id: data.id,
+                    [cell.getField()]: cell.getValue()
+                }
+            })
+            .done(function(data) {
+                if ('success' in data) {
+                    return true;
+                }
+                cell.setValue(cell.getInitialValue());
+                $('#js_alert').slideDown();
+                $('#js_alert .text').text('Error: ' + data.error);
+                return false;
+            });
     });
 </script>
 
@@ -452,6 +481,13 @@
                 $('[name="is_show_captured"]').val(1);
             } else {
                 $('[name="is_show_captured"]').val(0);
+            }
+            table2.setData();
+        }).on('change', '#flexSwitchCheckChecked3', function(e) {
+            if ($('#flexSwitchCheckChecked3').is(':checked')) {
+                $('[name="is_show_refunded"]').val(1);
+            } else {
+                $('[name="is_show_refunded"]').val(0);
             }
             table2.setData();
         }).on('click', '.refresh_scheduled_captures', function(e) {
@@ -504,7 +540,7 @@
                                 auto_auth_pauses_at: data.success
                             }]);
                             this_input.parents('label').find('span').text('Off');
-                        }else{
+                        } else {
                             this_input.parents('label').find('span').text('On');
                         }
                         return true;

@@ -9,4 +9,9 @@
             <input class="form-check-input" type="checkbox" role="switch" name="is_show_captured" id="flexSwitchCheckChecked2" value="0" >
             Show Captured</label>
     </div>
+    <div class="form-check form-switch text-end">
+        <label class="form-check-label" role="button">
+            <input class="form-check-input" type="checkbox" role="switch" name="is_show_refunded" id="flexSwitchCheckChecked3" value="0" >
+            Show Refunded</label>
+    </div>
 </form>

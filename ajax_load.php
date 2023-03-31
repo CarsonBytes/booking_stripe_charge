@@ -63,6 +63,9 @@ if ($_GET['type'] == 'past_captures') {
     if (isset($_GET['is_show_captured']) && $_GET['is_show_captured'] == 0) {
         $db->where('status', 'Captured', '!=');
     }
+    if (isset($_GET['is_show_refunded']) && $_GET['is_show_refunded'] == 0) {
+        $db->where('status', 'Refunded', '!=');
+    }
     if (isset($_GET['filter'])) {
         foreach($_GET['filter'] as $filter){
             if ($filter['field'] == 'customer_name'){
