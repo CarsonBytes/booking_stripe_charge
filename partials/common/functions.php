@@ -17,15 +17,19 @@ function handleFormSubmit($post)
         if (trim($post['cc-cvc']) != '000') $card_data['card']['cvc'] = trim($post['cc-cvc']);
 
         //mandy
-        $customer = createCustomer(
-            getStripeAPIKey('mandy', !$post['isTesting']),
-            $post['name'],
-            $card_data
-        );
-        $mandy_customer_id = null;
-        if ($customer instanceof Stripe\Customer) {
-            $_SESSION['message'][] = 'This customer @ mandy account is created';
-            $mandy_customer_id = $customer->id;
+        try {
+            $customer = createCustomer(
+                getStripeAPIKey('mandy', !$post['isTesting']),
+                $post['name'],
+                $card_data
+            );
+            $mandy_customer_id = null;
+            if ($customer instanceof Stripe\Customer) {
+                $_SESSION['message'][] = 'This customer @ mandy account is created';
+                $mandy_customer_id = $customer->id;
+            }
+        } catch (Exception $e) {
+            $_SESSION['exception'][] = 'Caught exception @ mandy account: '.  $e->getMessage();
         }
 
         //wasaike
@@ -121,7 +125,7 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
         'amount' => $amount_to_capture,
     ];
 
-    //check if stripe_charge_id exists and it'ss a capture action, then capture the authorized amount first
+    //check if stripe_charge_id exists and it's a capture action, then capture the authorized amount first
     if ($stripe_charge_id != '' && $is_capture) {
         $stripe = new \Stripe\StripeClient(getStripeAPIKey($shop, $is_live));
         $charge = $stripe->charges->retrieve(
@@ -185,6 +189,9 @@ function chargeAmount($mode, $is_live, $shop, $stripe_customer_id, $amount, $is_
             } else if ($mode == 'charge') {
                 if ($is_capture) {
                     $amount_captured += $amount_to_capture;
+                    if ($amount_authorized > 0){
+                        $amount_authorized -=  $amount_to_capture;
+                    }
                     $amount_to_capture = $customer['amount_to_capture'] - $amount_to_capture;
                 } else {
                     $amount_authorized += $amount_to_capture;
@@ -277,6 +284,7 @@ function our_global_exception_handler($exception)
 {
     $_SESSION['form_data'] = $_POST;
     $_SESSION['exception'][] = 'Exception: ' . $exception->getMessage();
+    /* echo '<pre>';var_dump($exception);echo '</pre>'; */
     header('Location: index.php');
     exit();
 }

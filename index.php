@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="header">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link <?php if (!isset($_SESSION['form_data']['scheduled_captures']) && !isset($_SESSION['form_data']['new_customer'])) { ?>active<?php } ?>" id="scheduled_captures-tab" data-bs-toggle="tab" data-bs-target="#scheduled_captures" type="button" role="tab" aria-controls="#scheduled_captures" aria-selected="true">Scheduled Captures
+                <button class="nav-link <?php if (!isset($_SESSION['form_data']['scheduled_captures']) && !isset($_SESSION['form_data']['new_customer']) && !isset($_SESSION['form_data']['charge_customer'])) { ?>active<?php } ?>" id="scheduled_captures-tab" data-bs-toggle="tab" data-bs-target="#scheduled_captures" type="button" role="tab" aria-controls="#scheduled_captures" aria-selected="true">Scheduled Captures
                 <img src="/img/icons8-update-left-rotation-24.png" class="refresh_scheduled_captures" /></button>
             </li>
             <li class="nav-item" role="presentation">
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade <?php if (!isset($_SESSION['form_data']['scheduled_captures']) && !isset($_SESSION['form_data']['new_customer'])) { ?>show active<?php } ?>" id="scheduled_captures" role="tabpanel" aria-labelledby="scheduled_captures-tab" tabindex="0">
+        <div class="tab-pane fade <?php if (!isset($_SESSION['form_data']['scheduled_captures']) && !isset($_SESSION['form_data']['new_customer']) && !isset($_SESSION['form_data']['charge_customer'])) { ?>show active<?php } ?>" id="scheduled_captures" role="tabpanel" aria-labelledby="scheduled_captures-tab" tabindex="0">
             <?php require 'partials/scheduled_captures.php'; ?>
         </div>
         <div class="tab-pane fade <?php if (isset($_SESSION['form_data']['charge_customer'])) { ?>show active<?php } ?>" id="past_captures" role="tabpanel" aria-labelledby="past_captures-tab" tabindex="1">
